@@ -767,6 +767,78 @@ async def delete_user(user_id: str, user: dict = Depends(require_admin)):
     
     return {"message": "Usuário excluído com sucesso"}
 
+# Models for admin user management
+class AdminCreateUser(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class AdminUpdateUser(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
+@admin_router.post("/users")
+async def admin_create_user(data: AdminCreateUser, user: dict = Depends(require_admin)):
+    email = data.email.lower()
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+    
+    hashed = hash_password(data.password)
+    user_doc = {
+        "name": data.name,
+        "email": email,
+        "password_hash": hashed,
+        "role": "user",
+        "is_blocked": False,
+        "created_at": datetime.now(timezone.utc)
+    }
+    result = await db.users.insert_one(user_doc)
+    
+    return {
+        "id": str(result.inserted_id),
+        "name": data.name,
+        "email": email,
+        "role": "user",
+        "is_blocked": False,
+        "created_at": user_doc["created_at"]
+    }
+
+@admin_router.put("/users/{user_id}")
+async def admin_update_user(user_id: str, data: AdminUpdateUser, user: dict = Depends(require_admin)):
+    target_user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    if target_user["role"] == "admin":
+        raise HTTPException(status_code=400, detail="Não é possível editar um administrador")
+    
+    update_data = {}
+    if data.name:
+        update_data["name"] = data.name
+    if data.email:
+        email = data.email.lower()
+        # Check if email is already used by another user
+        existing = await db.users.find_one({"email": email, "_id": {"$ne": ObjectId(user_id)}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email já cadastrado por outro usuário")
+        update_data["email"] = email
+    if data.password:
+        update_data["password_hash"] = hash_password(data.password)
+    
+    if update_data:
+        await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    
+    updated = await db.users.find_one({"_id": ObjectId(user_id)}, {"password_hash": 0})
+    return {
+        "id": str(updated["_id"]),
+        "name": updated["name"],
+        "email": updated["email"],
+        "role": updated["role"],
+        "is_blocked": updated.get("is_blocked", False),
+        "created_at": updated.get("created_at")
+    }
+
 # Include all routers
 api_router.include_router(auth_router)
 api_router.include_router(customers_router)

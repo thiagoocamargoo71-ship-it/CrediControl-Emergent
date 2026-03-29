@@ -108,12 +108,9 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* Register link */}
-          <p className="mt-8 text-center text-neutral-400">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-blue-500 hover:text-blue-400 font-medium" data-testid="register-link">
-              Criar conta
-            </Link>
+          {/* Contact admin note */}
+          <p className="mt-8 text-center text-neutral-500 text-sm">
+            Entre em contato com o administrador para obter acesso.
           </p>
         </div>
       </div>
