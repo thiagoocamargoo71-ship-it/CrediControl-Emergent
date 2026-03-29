@@ -386,6 +386,55 @@ async def get_customer(customer_id: str, user: dict = Depends(require_user)):
         created_at=customer["created_at"]
     )
 
+@customers_router.get("/{customer_id}/status")
+async def get_customer_status(customer_id: str, user: dict = Depends(require_user)):
+    """Get customer status: no_loans (orange), on_time (green), overdue (red)"""
+    customer = await db.customers.find_one({"_id": ObjectId(customer_id), "user_id": user["id"]})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    
+    # Check if customer has any loans
+    loans = await db.loans.find({"customer_id": customer_id}).to_list(100)
+    
+    if not loans:
+        return {
+            "status": "no_loans",
+            "label": "Sem Empréstimo",
+            "total_loans": 0,
+            "total_pending": 0,
+            "total_overdue": 0
+        }
+    
+    total_pending = 0
+    total_overdue = 0
+    today = datetime.now(timezone.utc).date()
+    
+    for loan in loans:
+        installments = await db.installments.find({"loan_id": str(loan["_id"]), "status": {"$ne": "paid"}}).to_list(100)
+        for inst in installments:
+            due_date = datetime.strptime(inst["due_date"], "%Y-%m-%d").date()
+            if due_date < today:
+                total_overdue += 1
+            else:
+                total_pending += 1
+    
+    if total_overdue > 0:
+        return {
+            "status": "overdue",
+            "label": "Atrasado",
+            "total_loans": len(loans),
+            "total_pending": total_pending,
+            "total_overdue": total_overdue
+        }
+    else:
+        return {
+            "status": "on_time",
+            "label": "Em Dia",
+            "total_loans": len(loans),
+            "total_pending": total_pending,
+            "total_overdue": 0
+        }
+
 @customers_router.put("/{customer_id}", response_model=CustomerResponse)
 async def update_customer(customer_id: str, data: CustomerUpdate, user: dict = Depends(require_user)):
     customer = await db.customers.find_one({"_id": ObjectId(customer_id), "user_id": user["id"]})

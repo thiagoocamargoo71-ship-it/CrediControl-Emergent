@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API, formatApiErrorDetail } from '../App';
 import Sidebar from '../components/Sidebar';
@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
+import { Badge } from '../components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -30,15 +31,25 @@ import {
   Phone, 
   FileText, 
   User,
-  Search
+  Search,
+  Eye,
+  Calendar,
+  CreditCard,
+  AlertTriangle,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
+  const [customerStatuses, setCustomerStatuses] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [formData, setFormData] = useState({
@@ -49,27 +60,48 @@ const Customers = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/customers`);
       setCustomers(response.data);
+      
+      // Fetch status for each customer
+      const statuses = {};
+      for (const customer of response.data) {
+        try {
+          const statusRes = await axios.get(`${API}/customers/${customer.id}/status`);
+          statuses[customer.id] = statusRes.data;
+        } catch (error) {
+          statuses[customer.id] = { status: 'no_loans', label: 'Sem Empréstimo' };
+        }
+      }
+      setCustomerStatuses(statuses);
     } catch (error) {
       toast.error('Erro ao carregar clientes');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
+  // Refresh data periodically for synchronization
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCustomers();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [fetchCustomers]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      if (selectedCustomer) {
+      if (selectedCustomer && !isDetailsModalOpen) {
         await axios.put(`${API}/customers/${selectedCustomer.id}`, formData);
         toast.success('Cliente atualizado com sucesso!');
       } else {
@@ -117,6 +149,45 @@ const Customers = () => {
     setIsModalOpen(false);
     setSelectedCustomer(null);
     setFormData({ name: '', phone: '', document: '', notes: '' });
+  };
+
+  const openDetailsModal = async (customer) => {
+    setSelectedCustomer(customer);
+    // Refresh status when opening details
+    try {
+      const statusRes = await axios.get(`${API}/customers/${customer.id}/status`);
+      setCustomerStatuses(prev => ({ ...prev, [customer.id]: statusRes.data }));
+    } catch (error) {
+      console.error('Error fetching status:', error);
+    }
+    setIsDetailsModalOpen(true);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return format(date, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
+  };
+
+  const getStatusConfig = (status) => {
+    const configs = {
+      on_time: {
+        color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        icon: CheckCircle,
+        iconColor: 'text-emerald-500'
+      },
+      overdue: {
+        color: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+        icon: AlertTriangle,
+        iconColor: 'text-rose-500'
+      },
+      no_loans: {
+        color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+        icon: Clock,
+        iconColor: 'text-amber-500'
+      }
+    };
+    return configs[status] || configs.no_loans;
   };
 
   const filteredCustomers = customers.filter(customer =>
@@ -186,76 +257,100 @@ const Customers = () => {
             )}
           </div>
         ) : (
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden animate-fade-in">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-neutral-800">
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                    Nome
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                    Telefone
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                    Documento
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCustomers.map((customer) => (
-                  <tr 
-                    key={customer.id} 
-                    className="border-b border-neutral-800/50 table-row-hover transition-colors"
-                    data-testid={`customer-row-${customer.id}`}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
-                          <span className="text-blue-500 font-medium">
-                            {customer.name.charAt(0).toUpperCase()}
-                          </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+            {filteredCustomers.map((customer, index) => {
+              const status = customerStatuses[customer.id];
+              const statusConfig = getStatusConfig(status?.status);
+              const StatusIcon = statusConfig.icon;
+              
+              return (
+                <div
+                  key={customer.id}
+                  className={`bg-neutral-900 border border-neutral-800 rounded-xl p-6 card-hover animate-fade-in-delay-${Math.min(index % 3, 2)}`}
+                  data-testid={`customer-card-${customer.id}`}
+                >
+                  {/* Customer Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+                        <span className="text-blue-500 text-lg font-bold">
+                          {customer.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="text-neutral-50 font-semibold">{customer.name}</h3>
+                        <div className="flex items-center gap-1 text-neutral-400 text-sm mt-0.5">
+                          <Phone className="h-3 w-3" />
+                          <span className="font-mono">{customer.phone}</span>
                         </div>
-                        <span className="text-neutral-50 font-medium">{customer.name}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-neutral-300 font-mono">
-                      {customer.phone}
-                    </td>
-                    <td className="px-6 py-4 text-neutral-400">
-                      {customer.document || '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openModal(customer)}
-                          className="text-neutral-400 hover:text-neutral-50 hover:bg-neutral-800"
-                          data-testid={`edit-customer-${customer.id}`}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCustomer(customer);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                          className="text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10"
-                          data-testid={`delete-customer-${customer.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                    </div>
+                    {status && (
+                      <div className={`p-2 rounded-lg border ${statusConfig.color}`}>
+                        <StatusIcon className={`h-4 w-4 ${statusConfig.iconColor}`} />
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                  </div>
+
+                  {/* Status Badge */}
+                  {status && (
+                    <div className="mb-4">
+                      <Badge className={`${statusConfig.color} border font-medium`}>
+                        {status.label}
+                      </Badge>
+                      {status.total_loans > 0 && (
+                        <span className="text-neutral-500 text-xs ml-2">
+                          {status.total_loans} empréstimo{status.total_loans > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Document if exists */}
+                  {customer.document && (
+                    <div className="flex items-center gap-2 text-neutral-400 text-sm mb-4">
+                      <FileText className="h-4 w-4" />
+                      <span>{customer.document}</span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 pt-4 border-t border-neutral-800">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openDetailsModal(customer)}
+                      className="flex-1 text-neutral-400 hover:text-blue-500 hover:bg-blue-500/10 gap-2"
+                      data-testid={`view-customer-${customer.id}`}
+                    >
+                      <Eye className="h-4 w-4" />
+                      Detalhes
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openModal(customer)}
+                      className="text-neutral-400 hover:text-neutral-50 hover:bg-neutral-800"
+                      data-testid={`edit-customer-${customer.id}`}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCustomer(customer);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                      className="text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10"
+                      data-testid={`delete-customer-${customer.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -344,6 +439,130 @@ const Customers = () => {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Details Modal */}
+        <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+          <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-50 max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-heading text-xl">
+                Detalhes do Cliente
+              </DialogTitle>
+            </DialogHeader>
+            {selectedCustomer && (
+              <div className="space-y-6 py-4">
+                {/* Customer Header with Status */}
+                <div className="flex items-center gap-4 pb-4 border-b border-neutral-800">
+                  <div className="h-16 w-16 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+                    <span className="text-blue-500 text-2xl font-bold">
+                      {selectedCustomer.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-neutral-50">{selectedCustomer.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {customerStatuses[selectedCustomer.id] && (() => {
+                        const status = customerStatuses[selectedCustomer.id];
+                        const statusConfig = getStatusConfig(status.status);
+                        return (
+                          <Badge className={`${statusConfig.color} border font-medium`}>
+                            {status.label}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Details */}
+                {customerStatuses[selectedCustomer.id] && (
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4">
+                    {(() => {
+                      const status = customerStatuses[selectedCustomer.id];
+                      const statusConfig = getStatusConfig(status.status);
+                      const StatusIcon = statusConfig.icon;
+                      
+                      return (
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-lg border ${statusConfig.color}`}>
+                            <StatusIcon className={`h-6 w-6 ${statusConfig.iconColor}`} />
+                          </div>
+                          <div>
+                            <p className="text-neutral-50 font-medium">{status.label}</p>
+                            {status.status === 'no_loans' ? (
+                              <p className="text-neutral-500 text-sm">
+                                Este cliente ainda não possui empréstimos
+                              </p>
+                            ) : (
+                              <p className="text-neutral-500 text-sm">
+                                {status.total_loans} empréstimo{status.total_loans > 1 ? 's' : ''} • 
+                                {status.total_pending > 0 && ` ${status.total_pending} pendente${status.total_pending > 1 ? 's' : ''}`}
+                                {status.total_overdue > 0 && ` • ${status.total_overdue} atrasada${status.total_overdue > 1 ? 's' : ''}`}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Customer Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                      Telefone
+                    </p>
+                    <div className="flex items-center gap-2 text-neutral-300">
+                      <Phone className="h-4 w-4 text-neutral-500" />
+                      <span className="font-mono">{selectedCustomer.phone}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                      Documento
+                    </p>
+                    <div className="flex items-center gap-2 text-neutral-300">
+                      <FileText className="h-4 w-4 text-neutral-500" />
+                      <span>{selectedCustomer.document || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedCustomer.notes && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-2">
+                      Observações
+                    </p>
+                    <p className="text-neutral-300 bg-neutral-950 border border-neutral-800 rounded-lg p-3">
+                      {selectedCustomer.notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Created At */}
+                <div className="pt-4 border-t border-neutral-800">
+                  <div className="flex items-center gap-2 text-neutral-500 text-sm">
+                    <Calendar className="h-4 w-4" />
+                    <span>Cadastrado em {formatDate(selectedCustomer.created_at)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setIsDetailsModalOpen(false);
+                  openModal(selectedCustomer);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+              >
+                <Edit2 className="h-4 w-4" />
+                Editar Cliente
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
