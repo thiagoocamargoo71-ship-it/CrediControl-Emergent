@@ -713,6 +713,164 @@ async def pay_installment(installment_id: str, user: dict = Depends(require_user
     
     return {"message": "Pagamento registrado com sucesso", "amount_paid": amount_paid}
 
+@installments_router.get("")
+async def list_all_installments(
+    user: dict = Depends(require_user),
+    status: Optional[str] = None,
+    period: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """List all installments for the user with optional filters"""
+    # Get all loans for the user
+    loans = await db.loans.find({"user_id": user["id"]}).to_list(1000)
+    loan_ids = [str(loan["_id"]) for loan in loans]
+    loan_map = {str(loan["_id"]): loan for loan in loans}
+    
+    if not loan_ids:
+        return []
+    
+    # Get all installments for these loans
+    query = {"loan_id": {"$in": loan_ids}}
+    installments = await db.installments.find(query).to_list(10000)
+    
+    today = datetime.now(timezone.utc).date()
+    result = []
+    
+    for inst in installments:
+        loan = loan_map.get(inst["loan_id"])
+        if not loan:
+            continue
+            
+        # Get customer info
+        customer = await db.customers.find_one({"_id": ObjectId(loan["customer_id"])})
+        customer_name = customer["name"] if customer else "N/A"
+        
+        due_date = datetime.strptime(inst["due_date"], "%Y-%m-%d").date()
+        days_overdue = 0
+        updated_amount = inst["amount"]
+        current_status = inst["status"]
+        
+        # Calculate overdue status and amount
+        if current_status == "pending" and due_date < today:
+            days_overdue = (today - due_date).days
+            daily_rate = loan["interest_rate"] / 30 / 100
+            updated_amount = inst["amount"] + (inst["amount"] * daily_rate * days_overdue)
+            current_status = "overdue"
+            # Update in database
+            await db.installments.update_one(
+                {"_id": inst["_id"]},
+                {"$set": {"status": "overdue", "updated_amount": round(updated_amount, 2)}}
+            )
+        
+        # Apply status filter
+        if status and status != "all":
+            if status == "pending" and current_status not in ["pending"]:
+                continue
+            if status == "paid" and current_status != "paid":
+                continue
+            if status == "overdue" and current_status != "overdue":
+                continue
+        
+        # Apply period filter
+        if period:
+            if period == "today" and due_date != today:
+                continue
+            if period == "next7days":
+                if due_date < today or due_date > today + timedelta(days=7):
+                    continue
+            if period == "overdue" and due_date >= today:
+                continue
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            if search_lower not in customer_name.lower() and search_lower not in str(inst["number"]):
+                continue
+        
+        result.append({
+            "id": str(inst["_id"]),
+            "loan_id": inst["loan_id"],
+            "customer_id": loan["customer_id"],
+            "customer_name": customer_name,
+            "number": inst["number"],
+            "total_installments": loan["number_of_installments"],
+            "amount": inst["amount"],
+            "updated_amount": round(updated_amount, 2),
+            "due_date": inst["due_date"],
+            "status": current_status,
+            "paid_at": inst.get("paid_at"),
+            "days_overdue": days_overdue,
+            "interest_rate": loan["interest_rate"],
+            "loan_amount": loan["amount"],
+            "loan_total": loan["total_amount"]
+        })
+    
+    # Sort by due_date
+    result.sort(key=lambda x: x["due_date"])
+    
+    return result
+
+@installments_router.get("/stats")
+async def get_installments_stats(user: dict = Depends(require_user)):
+    """Get statistics for user's installments"""
+    # Get all loans for the user
+    loans = await db.loans.find({"user_id": user["id"]}).to_list(1000)
+    loan_ids = [str(loan["_id"]) for loan in loans]
+    loan_map = {str(loan["_id"]): loan for loan in loans}
+    
+    if not loan_ids:
+        return {
+            "total_pending": 0,
+            "total_overdue": 0,
+            "total_paid": 0,
+            "pending_amount": 0,
+            "overdue_amount": 0
+        }
+    
+    # Get all installments for these loans
+    installments = await db.installments.find({"loan_id": {"$in": loan_ids}}).to_list(10000)
+    
+    today = datetime.now(timezone.utc).date()
+    
+    total_pending = 0
+    total_overdue = 0
+    total_paid = 0
+    pending_amount = 0
+    overdue_amount = 0
+    
+    for inst in installments:
+        loan = loan_map.get(inst["loan_id"])
+        if not loan:
+            continue
+            
+        due_date = datetime.strptime(inst["due_date"], "%Y-%m-%d").date()
+        current_status = inst["status"]
+        updated_amount = inst["amount"]
+        
+        # Calculate overdue status and amount
+        if current_status == "pending" and due_date < today:
+            days_overdue = (today - due_date).days
+            daily_rate = loan["interest_rate"] / 30 / 100
+            updated_amount = inst["amount"] + (inst["amount"] * daily_rate * days_overdue)
+            current_status = "overdue"
+        
+        if current_status == "paid":
+            total_paid += 1
+        elif current_status == "overdue":
+            total_overdue += 1
+            overdue_amount += updated_amount
+        else:
+            total_pending += 1
+            pending_amount += updated_amount
+    
+    return {
+        "total_pending": total_pending,
+        "total_overdue": total_overdue,
+        "total_paid": total_paid,
+        "pending_amount": round(pending_amount, 2),
+        "overdue_amount": round(overdue_amount, 2)
+    }
+
 # ============== PAYMENTS ROUTES ==============
 
 @payments_router.get("/installment/{installment_id}", response_model=List[PaymentResponse])

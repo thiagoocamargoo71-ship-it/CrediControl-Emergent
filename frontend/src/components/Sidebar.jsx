@@ -6,7 +6,8 @@ import {
   Users, 
   CreditCard, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Receipt
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -24,6 +25,7 @@ const Sidebar = () => {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/loans', label: 'Empréstimos', icon: CreditCard },
+    { path: '/installments', label: 'Parcelas', icon: Receipt },
   ];
 
   const adminLinks = [
