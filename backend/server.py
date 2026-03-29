@@ -28,6 +28,34 @@ JWT_ALGORITHM = "HS256"
 def get_jwt_secret() -> str:
     return os.environ["JWT_SECRET"]
 
+# Check if running in production (HTTPS)
+def is_production() -> bool:
+    frontend_url = os.environ.get("FRONTEND_URL", "")
+    return "https://" in frontend_url
+
+# Helper to set auth cookies
+def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
+    secure = is_production()
+    samesite = "none" if secure else "lax"
+    response.set_cookie(
+        key="access_token", 
+        value=access_token, 
+        httponly=True, 
+        secure=secure, 
+        samesite=samesite, 
+        max_age=3600, 
+        path="/"
+    )
+    response.set_cookie(
+        key="refresh_token", 
+        value=refresh_token, 
+        httponly=True, 
+        secure=secure, 
+        samesite=samesite, 
+        max_age=604800, 
+        path="/"
+    )
+
 # Password hashing
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -216,8 +244,7 @@ async def register(data: UserRegister, response: Response):
     access_token = create_access_token(user_id, email, "user")
     refresh_token = create_refresh_token(user_id)
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=3600, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    set_auth_cookies(response, access_token, refresh_token)
     
     return {"id": user_id, "name": data.name, "email": email, "role": "user"}
 
@@ -259,8 +286,7 @@ async def login(data: UserLogin, response: Response, request: Request):
     access_token = create_access_token(user_id, email, user["role"])
     refresh_token = create_refresh_token(user_id)
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=3600, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    set_auth_cookies(response, access_token, refresh_token)
     
     return {"id": user_id, "name": user["name"], "email": email, "role": user["role"]}
 
@@ -270,8 +296,10 @@ async def get_me(user: dict = Depends(get_current_user)):
 
 @auth_router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/")
+    secure = is_production()
+    samesite = "none" if secure else "lax"
+    response.delete_cookie("access_token", path="/", secure=secure, samesite=samesite)
+    response.delete_cookie("refresh_token", path="/", secure=secure, samesite=samesite)
     return {"message": "Logout realizado com sucesso"}
 
 @auth_router.post("/refresh")
@@ -288,7 +316,17 @@ async def refresh_token(request: Request, response: Response):
             raise HTTPException(status_code=401, detail="Usuário não encontrado")
         
         access_token = create_access_token(str(user["_id"]), user["email"], user["role"])
-        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=3600, path="/")
+        secure = is_production()
+        samesite = "none" if secure else "lax"
+        response.set_cookie(
+            key="access_token", 
+            value=access_token, 
+            httponly=True, 
+            secure=secure, 
+            samesite=samesite, 
+            max_age=3600, 
+            path="/"
+        )
         return {"message": "Token renovado"}
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expirado")
@@ -745,9 +783,14 @@ async def root():
 app.include_router(api_router)
 
 # CORS Middleware
+frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+cors_origins = [frontend_url, "http://localhost:3000"]
+if "preview.emergentagent.com" in frontend_url:
+    cors_origins.append(frontend_url.replace("https://", "http://"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("FRONTEND_URL", "http://localhost:3000")],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
