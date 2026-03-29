@@ -10,7 +10,7 @@
 }
 
 .App-header {
-    background-color: #0f0f10;
+    background-color: #0A0A0A;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -21,7 +21,7 @@
 }
 
 .App-link {
-    color: #61dafb;
+    color: #3B82F6;
 }
 
 @keyframes App-logo-spin {
@@ -31,4 +31,15 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Ensure dark theme */
+html, body {
+    background-color: #0A0A0A;
+    color: #FAFAFA;
+}
+
+.App {
+    min-height: 100vh;
+    background-color: #0A0A0A;
 }
