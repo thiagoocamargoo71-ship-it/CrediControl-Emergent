@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import Sidebar from '../components/Sidebar';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Badge } from '../components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,9 @@ import {
   Percent,
   Calendar as CalendarIcon,
   CreditCard,
-  Search
+  Search,
+  X,
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -42,6 +45,8 @@ import { ptBR } from 'date-fns/locale';
 
 const Loans = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const customerFilter = searchParams.get('customer');
   const [loans, setLoans] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +54,7 @@ const Loans = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
+  const [filterCustomerName, setFilterCustomerName] = useState(null);
   const [formData, setFormData] = useState({
     customer_id: '',
     amount: '',
@@ -60,6 +66,16 @@ const Loans = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Set filter customer name when data is loaded
+  useEffect(() => {
+    if (customerFilter && customers.length > 0) {
+      const customer = customers.find(c => c.id === customerFilter);
+      if (customer) {
+        setFilterCustomerName(customer.name);
+      }
+    }
+  }, [customerFilter, customers]);
 
   const fetchData = async () => {
     try {
@@ -74,6 +90,11 @@ const Loans = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearFilter = () => {
+    setSearchParams({});
+    setFilterCustomerName(null);
   };
 
   const handleSubmit = async (e) => {
@@ -151,9 +172,14 @@ const Loans = () => {
 
   const preview = calculatePreview();
 
-  const filteredLoans = loans.filter(loan =>
-    loan.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLoans = loans.filter(loan => {
+    // Apply customer filter from URL
+    if (customerFilter && loan.customer_id !== customerFilter) {
+      return false;
+    }
+    // Apply search term
+    return loan.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="min-h-screen bg-neutral-950">
@@ -193,6 +219,23 @@ const Loans = () => {
             data-testid="search-loans-input"
           />
         </div>
+
+        {/* Customer Filter Badge */}
+        {customerFilter && filterCustomerName && (
+          <div className="mb-6 animate-fade-in">
+            <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border py-2 px-4 text-sm gap-2">
+              <User className="h-4 w-4" />
+              Filtrando por: <span className="font-semibold">{filterCustomerName}</span>
+              <button
+                onClick={clearFilter}
+                className="ml-2 hover:text-blue-300"
+                data-testid="clear-customer-filter"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </Badge>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center h-64">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import Sidebar from '../components/Sidebar';
 import { Button } from '../components/ui/button';
@@ -7,6 +8,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { Checkbox } from '../components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -37,13 +39,17 @@ import {
   CreditCard,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Mail,
+  MapPin,
+  UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Customers = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [customerStatuses, setCustomerStatuses] = useState({});
   const [loading, setLoading] = useState(true);
@@ -55,8 +61,13 @@ const Customers = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    email: '',
     document: '',
-    notes: ''
+    address: '',
+    notes: '',
+    is_referral: false,
+    referral_name: '',
+    referral_phone: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -101,11 +112,17 @@ const Customers = () => {
     setSubmitting(true);
 
     try {
+      const payload = {
+        ...formData,
+        referral_name: formData.is_referral ? formData.referral_name : null,
+        referral_phone: formData.is_referral ? formData.referral_phone : null
+      };
+
       if (selectedCustomer && !isDetailsModalOpen) {
-        await axios.put(`${API}/customers/${selectedCustomer.id}`, formData);
+        await axios.put(`${API}/customers/${selectedCustomer.id}`, payload);
         toast.success('Cliente atualizado com sucesso!');
       } else {
-        await axios.post(`${API}/customers`, formData);
+        await axios.post(`${API}/customers`, payload);
         toast.success('Cliente criado com sucesso!');
       }
       fetchCustomers();
@@ -135,12 +152,27 @@ const Customers = () => {
       setFormData({
         name: customer.name,
         phone: customer.phone,
+        email: customer.email || '',
         document: customer.document || '',
-        notes: customer.notes || ''
+        address: customer.address || '',
+        notes: customer.notes || '',
+        is_referral: customer.is_referral || false,
+        referral_name: customer.referral_name || '',
+        referral_phone: customer.referral_phone || ''
       });
     } else {
       setSelectedCustomer(null);
-      setFormData({ name: '', phone: '', document: '', notes: '' });
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        document: '',
+        address: '',
+        notes: '',
+        is_referral: false,
+        referral_name: '',
+        referral_phone: ''
+      });
     }
     setIsModalOpen(true);
   };
@@ -148,7 +180,17 @@ const Customers = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedCustomer(null);
-    setFormData({ name: '', phone: '', document: '', notes: '' });
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      document: '',
+      address: '',
+      notes: '',
+      is_referral: false,
+      referral_name: '',
+      referral_phone: ''
+    });
   };
 
   const openDetailsModal = async (customer) => {
@@ -161,6 +203,11 @@ const Customers = () => {
       console.error('Error fetching status:', error);
     }
     setIsDetailsModalOpen(true);
+  };
+
+  const handleViewLoans = (customerId) => {
+    setIsDetailsModalOpen(false);
+    navigate(`/loans?customer=${customerId}`);
   };
 
   const formatDate = (dateStr) => {
@@ -272,17 +319,19 @@ const Customers = () => {
                   {/* Customer Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
-                        <span className="text-blue-500 text-lg font-bold">
+                      <div className="h-14 w-14 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+                        <span className="text-blue-500 text-xl font-bold">
                           {customer.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-neutral-50 font-semibold">{customer.name}</h3>
-                        <div className="flex items-center gap-1 text-neutral-400 text-sm mt-0.5">
-                          <Phone className="h-3 w-3" />
-                          <span className="font-mono">{customer.phone}</span>
-                        </div>
+                        <h3 className="text-neutral-50 font-bold text-lg">{customer.name}</h3>
+                        {customer.is_referral && (
+                          <div className="flex items-center gap-1 text-blue-400 text-xs mt-0.5">
+                            <UserPlus className="h-3 w-3" />
+                            <span>Indicação</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {status && (
@@ -306,21 +355,13 @@ const Customers = () => {
                     </div>
                   )}
 
-                  {/* Document if exists */}
-                  {customer.document && (
-                    <div className="flex items-center gap-2 text-neutral-400 text-sm mb-4">
-                      <FileText className="h-4 w-4" />
-                      <span>{customer.document}</span>
-                    </div>
-                  )}
-
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-4 border-t border-neutral-800">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => openDetailsModal(customer)}
-                      className="flex-1 text-neutral-400 hover:text-blue-500 hover:bg-blue-500/10 gap-2"
+                      className="flex-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 gap-2"
                       data-testid={`view-customer-${customer.id}`}
                     >
                       <Eye className="h-4 w-4" />
@@ -329,20 +370,11 @@ const Customers = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => openModal(customer)}
-                      className="text-neutral-400 hover:text-neutral-50 hover:bg-neutral-800"
-                      data-testid={`edit-customer-${customer.id}`}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
                       onClick={() => {
                         setSelectedCustomer(customer);
                         setIsDeleteDialogOpen(true);
                       }}
-                      className="text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10"
+                      className="text-rose-500 hover:text-rose-400 hover:bg-rose-500/10"
                       data-testid={`delete-customer-${customer.id}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -356,7 +388,7 @@ const Customers = () => {
 
         {/* Create/Edit Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-50">
+          <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-50 max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-heading text-xl">
                 {selectedCustomer ? 'Editar Cliente' : 'Novo Cliente'}
@@ -395,6 +427,21 @@ const Customers = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="email" className="text-neutral-300">E-mail (opcional)</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="email@exemplo.com"
+                      className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-50"
+                      data-testid="customer-email-input"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="document" className="text-neutral-300">Documento (opcional)</Label>
                   <div className="relative">
                     <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
@@ -409,6 +456,20 @@ const Customers = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="address" className="text-neutral-300">Endereço (opcional)</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Rua, número, bairro, cidade"
+                      className="pl-10 bg-neutral-950 border-neutral-800 text-neutral-50"
+                      data-testid="customer-address-input"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="notes" className="text-neutral-300">Observações (opcional)</Label>
                   <Textarea
                     id="notes"
@@ -418,6 +479,50 @@ const Customers = () => {
                     className="bg-neutral-950 border-neutral-800 text-neutral-50 min-h-[80px]"
                     data-testid="customer-notes-input"
                   />
+                </div>
+
+                {/* Referral Section */}
+                <div className="pt-4 border-t border-neutral-800">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Checkbox
+                      id="is_referral"
+                      checked={formData.is_referral}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_referral: checked })}
+                      className="border-neutral-600 data-[state=checked]:bg-blue-600"
+                      data-testid="customer-referral-checkbox"
+                    />
+                    <Label htmlFor="is_referral" className="text-neutral-300 cursor-pointer flex items-center gap-2">
+                      <UserPlus className="h-4 w-4 text-blue-400" />
+                      Este cliente foi indicado
+                    </Label>
+                  </div>
+
+                  {formData.is_referral && (
+                    <div className="space-y-4 pl-6 border-l-2 border-blue-500/30">
+                      <div className="space-y-2">
+                        <Label htmlFor="referral_name" className="text-neutral-300">Nome de quem indicou</Label>
+                        <Input
+                          id="referral_name"
+                          value={formData.referral_name}
+                          onChange={(e) => setFormData({ ...formData, referral_name: e.target.value })}
+                          placeholder="Nome do indicador"
+                          className="bg-neutral-950 border-neutral-800 text-neutral-50"
+                          data-testid="customer-referral-name-input"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="referral_phone" className="text-neutral-300">Telefone de quem indicou</Label>
+                        <Input
+                          id="referral_phone"
+                          value={formData.referral_phone}
+                          onChange={(e) => setFormData({ ...formData, referral_phone: e.target.value })}
+                          placeholder="(00) 00000-0000"
+                          className="bg-neutral-950 border-neutral-800 text-neutral-50"
+                          data-testid="customer-referral-phone-input"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <DialogFooter>
@@ -444,7 +549,7 @@ const Customers = () => {
 
         {/* Details Modal */}
         <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-          <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-50 max-w-lg">
+          <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-50 max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-heading text-xl">
                 Detalhes do Cliente
@@ -460,7 +565,7 @@ const Customers = () => {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-neutral-50">{selectedCustomer.name}</h3>
+                    <h3 className="text-2xl font-bold text-neutral-50">{selectedCustomer.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       {customerStatuses[selectedCustomer.id] && (() => {
                         const status = customerStatuses[selectedCustomer.id];
@@ -471,6 +576,11 @@ const Customers = () => {
                           </Badge>
                         );
                       })()}
+                      {selectedCustomer.is_referral && (
+                        <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border font-medium">
+                          Indicação
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -521,6 +631,15 @@ const Customers = () => {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                      E-mail
+                    </p>
+                    <div className="flex items-center gap-2 text-neutral-300">
+                      <Mail className="h-4 w-4 text-neutral-500" />
+                      <span>{selectedCustomer.email || '-'}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
                       Documento
                     </p>
                     <div className="flex items-center gap-2 text-neutral-300">
@@ -528,7 +647,40 @@ const Customers = () => {
                       <span>{selectedCustomer.document || '-'}</span>
                     </div>
                   </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                      Endereço
+                    </p>
+                    <div className="flex items-center gap-2 text-neutral-300">
+                      <MapPin className="h-4 w-4 text-neutral-500" />
+                      <span>{selectedCustomer.address || '-'}</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Referral Info */}
+                {selectedCustomer.is_referral && (selectedCustomer.referral_name || selectedCustomer.referral_phone) && (
+                  <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4">
+                    <p className="text-xs uppercase tracking-wider text-blue-400 font-semibold mb-3 flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Indicação
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedCustomer.referral_name && (
+                        <div>
+                          <p className="text-xs text-neutral-500">Nome do indicador</p>
+                          <p className="text-neutral-300">{selectedCustomer.referral_name}</p>
+                        </div>
+                      )}
+                      {selectedCustomer.referral_phone && (
+                        <div>
+                          <p className="text-xs text-neutral-500">Telefone do indicador</p>
+                          <p className="text-neutral-300 font-mono">{selectedCustomer.referral_phone}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Notes */}
                 {selectedCustomer.notes && (
@@ -551,13 +703,24 @@ const Customers = () => {
                 </div>
               </div>
             )}
-            <DialogFooter>
+            <DialogFooter className="flex gap-2">
+              {customerStatuses[selectedCustomer?.id]?.total_loans > 0 && (
+                <Button
+                  onClick={() => handleViewLoans(selectedCustomer.id)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                  data-testid="view-customer-loans"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Consultar Empréstimos
+                </Button>
+              )}
               <Button
                 onClick={() => {
                   setIsDetailsModalOpen(false);
                   openModal(selectedCustomer);
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                data-testid="edit-customer-from-details"
               >
                 <Edit2 className="h-4 w-4" />
                 Editar Cliente

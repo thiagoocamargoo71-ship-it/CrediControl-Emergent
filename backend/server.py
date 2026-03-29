@@ -160,22 +160,37 @@ class UserResponse(BaseModel):
 class CustomerCreate(BaseModel):
     name: str
     phone: str
+    email: Optional[str] = None
     document: Optional[str] = None
+    address: Optional[str] = None
     notes: Optional[str] = None
+    is_referral: bool = False
+    referral_name: Optional[str] = None
+    referral_phone: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     document: Optional[str] = None
+    address: Optional[str] = None
     notes: Optional[str] = None
+    is_referral: Optional[bool] = None
+    referral_name: Optional[str] = None
+    referral_phone: Optional[str] = None
 
 class CustomerResponse(BaseModel):
     id: str
     user_id: str
     name: str
     phone: str
+    email: Optional[str] = None
     document: Optional[str] = None
+    address: Optional[str] = None
     notes: Optional[str] = None
+    is_referral: bool = False
+    referral_name: Optional[str] = None
+    referral_phone: Optional[str] = None
     created_at: datetime
 
 class LoanCreate(BaseModel):
@@ -337,15 +352,20 @@ async def refresh_token(request: Request, response: Response):
 
 @customers_router.get("", response_model=List[CustomerResponse])
 async def list_customers(user: dict = Depends(require_user)):
-    customers = await db.customers.find({"user_id": user["id"]}, {"_id": 1, "user_id": 1, "name": 1, "phone": 1, "document": 1, "notes": 1, "created_at": 1}).to_list(1000)
+    customers = await db.customers.find({"user_id": user["id"]}).to_list(1000)
     return [
         CustomerResponse(
             id=str(c["_id"]),
             user_id=c["user_id"],
             name=c["name"],
             phone=c["phone"],
+            email=c.get("email"),
             document=c.get("document"),
+            address=c.get("address"),
             notes=c.get("notes"),
+            is_referral=c.get("is_referral", False),
+            referral_name=c.get("referral_name"),
+            referral_phone=c.get("referral_phone"),
             created_at=c["created_at"]
         ) for c in customers
     ]
@@ -356,8 +376,13 @@ async def create_customer(data: CustomerCreate, user: dict = Depends(require_use
         "user_id": user["id"],
         "name": data.name,
         "phone": data.phone,
+        "email": data.email,
         "document": data.document,
+        "address": data.address,
         "notes": data.notes,
+        "is_referral": data.is_referral,
+        "referral_name": data.referral_name if data.is_referral else None,
+        "referral_phone": data.referral_phone if data.is_referral else None,
         "created_at": datetime.now(timezone.utc)
     }
     result = await db.customers.insert_one(doc)
@@ -366,8 +391,13 @@ async def create_customer(data: CustomerCreate, user: dict = Depends(require_use
         user_id=user["id"],
         name=data.name,
         phone=data.phone,
+        email=data.email,
         document=data.document,
+        address=data.address,
         notes=data.notes,
+        is_referral=data.is_referral,
+        referral_name=data.referral_name if data.is_referral else None,
+        referral_phone=data.referral_phone if data.is_referral else None,
         created_at=doc["created_at"]
     )
 
@@ -381,8 +411,13 @@ async def get_customer(customer_id: str, user: dict = Depends(require_user)):
         user_id=customer["user_id"],
         name=customer["name"],
         phone=customer["phone"],
+        email=customer.get("email"),
         document=customer.get("document"),
+        address=customer.get("address"),
         notes=customer.get("notes"),
+        is_referral=customer.get("is_referral", False),
+        referral_name=customer.get("referral_name"),
+        referral_phone=customer.get("referral_phone"),
         created_at=customer["created_at"]
     )
 
@@ -441,7 +476,17 @@ async def update_customer(customer_id: str, data: CustomerUpdate, user: dict = D
     if not customer:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     
-    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    update_data = {}
+    for k, v in data.model_dump().items():
+        if v is not None:
+            # Handle referral fields specially
+            if k == "is_referral" and v == False:
+                update_data["is_referral"] = False
+                update_data["referral_name"] = None
+                update_data["referral_phone"] = None
+            else:
+                update_data[k] = v
+    
     if update_data:
         await db.customers.update_one({"_id": ObjectId(customer_id)}, {"$set": update_data})
     
@@ -451,8 +496,13 @@ async def update_customer(customer_id: str, data: CustomerUpdate, user: dict = D
         user_id=updated["user_id"],
         name=updated["name"],
         phone=updated["phone"],
+        email=updated.get("email"),
         document=updated.get("document"),
+        address=updated.get("address"),
         notes=updated.get("notes"),
+        is_referral=updated.get("is_referral", False),
+        referral_name=updated.get("referral_name"),
+        referral_phone=updated.get("referral_phone"),
         created_at=updated["created_at"]
     )
 
