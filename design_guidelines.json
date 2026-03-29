@@ -1,0 +1,138 @@
+{
+  "theme": "dark",
+  "archetype": "4 (Swiss & High-Contrast - Dark Mode Variant)",
+  "domain": "Finance, SaaS Dashboard",
+  "emotional_tone": "Objective, secure, professional, highly functional, no-nonsense",
+  "colors": {
+    "background": {
+      "default": "#0A0A0A",
+      "tailwind": "bg-neutral-950"
+    },
+    "surface": {
+      "default": "#171717",
+      "tailwind": "bg-neutral-900"
+    },
+    "surface_hover": {
+      "default": "#262626",
+      "tailwind": "bg-neutral-800"
+    },
+    "border": {
+      "default": "#262626",
+      "tailwind": "border-neutral-800"
+    },
+    "border_focus": {
+      "default": "#404040",
+      "tailwind": "border-neutral-700"
+    },
+    "text": {
+      "primary": "#FAFAFA",
+      "secondary": "#A3A3A3",
+      "muted": "#737373",
+      "tailwind_primary": "text-neutral-50",
+      "tailwind_secondary": "text-neutral-400",
+      "tailwind_muted": "text-neutral-500"
+    },
+    "brand": {
+      "primary": "#2563EB",
+      "primary_hover": "#1D4ED8",
+      "tailwind_bg": "bg-blue-600",
+      "tailwind_bg_hover": "hover:bg-blue-700",
+      "tailwind_text": "text-blue-500"
+    },
+    "semantic": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#F43F5E",
+      "tailwind_success": "text-emerald-500",
+      "tailwind_warning": "text-amber-500",
+      "tailwind_danger": "text-rose-500",
+      "tailwind_success_bg": "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
+      "tailwind_warning_bg": "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+      "tailwind_danger_bg": "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "'Cabinet Grotesk', sans-serif",
+      "body": "'Manrope', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl font-bold tracking-tight text-neutral-50",
+      "h2": "text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-50",
+      "h3": "text-xl font-medium tracking-tight text-neutral-50",
+      "h4": "text-lg font-medium text-neutral-50",
+      "body": "text-base text-neutral-400 leading-relaxed",
+      "small": "text-sm text-neutral-400",
+      "micro": "text-xs font-semibold tracking-wider uppercase text-neutral-500",
+      "financial_figures": "font-mono tracking-tight text-neutral-50"
+    },
+    "instructions": "Import Cabinet Grotesk from fontshare or define via custom @font-face. Import Manrope and JetBrains Mono from Google Fonts. Use font-mono for all money amounts, percentages, and dates to ensure vertical alignment in tables."
+  },
+  "layout_and_spacing": {
+    "spacing_scale": "Use generous spacing. Tailwind p-6 or p-8 for card padding. Gap-6 for grid items.",
+    "dashboard_structure": "Sidebar (w-64) + Main Content area. Sidebar is fixed, main area scrolls.",
+    "grids": {
+      "metrics_row": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6",
+      "bento_dashboard": "grid grid-cols-1 lg:grid-cols-3 gap-6",
+      "main_widget": "col-span-1 lg:col-span-2 bg-neutral-900 border border-neutral-800 rounded-xl p-6",
+      "side_widget": "col-span-1 bg-neutral-900 border border-neutral-800 rounded-xl p-6"
+    }
+  },
+  "components": {
+    "surface_strategy": {
+      "cards": "Flat background (bg-neutral-900), 1px subtle border (border-neutral-800), slightly rounded corners (rounded-xl), no shadow by default. On interactive cards, add hover:-translate-y-1 hover:border-neutral-700 transition-all duration-200.",
+      "header_glassmorphism": "If using a sticky header, use backdrop-blur-xl bg-neutral-950/70 border-b border-neutral-800.",
+      "sidebar": "Solid bg-neutral-950 border-r border-neutral-800. Active link: bg-blue-600/10 text-blue-500. Inactive link: text-neutral-400 hover:text-neutral-50 hover:bg-neutral-900."
+    },
+    "buttons": {
+      "primary": "bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors",
+      "secondary": "bg-neutral-800 hover:bg-neutral-700 text-neutral-50 border border-neutral-700 font-medium px-4 py-2 rounded-lg transition-colors",
+      "danger": "bg-rose-500 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-lg transition-colors",
+      "ghost": "hover:bg-neutral-800 text-neutral-400 hover:text-neutral-50 px-4 py-2 rounded-lg transition-colors"
+    },
+    "inputs": {
+      "default": "bg-neutral-950 border border-neutral-800 text-neutral-50 placeholder:text-neutral-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+    },
+    "tables": {
+      "wrapper": "w-full text-left border-collapse",
+      "header": "text-xs uppercase tracking-wider text-neutral-500 border-b border-neutral-800 pb-3",
+      "row": "border-b border-neutral-800/50 hover:bg-neutral-800/20 transition-colors",
+      "cell": "py-4 text-sm text-neutral-300"
+    },
+    "badges": {
+      "base": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+      "paid": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      "pending": "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      "late": "bg-rose-500/10 text-rose-400 border-rose-500/20"
+    }
+  },
+  "motion": {
+    "hover": "Subtle background color changes and slight transforms (e.g., -translate-y-0.5) for interactive cards.",
+    "page_transition": "Simple opacity fade-in on mount.",
+    "lists": "Staggered fade-in for table rows or list items if possible."
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "instructions": "Use lucide-react for all standard icons. Stroke-width 1.5 or 2 for clarity."
+    }
+  },
+  "image_urls": [
+    {
+      "category": "login_background",
+      "description": "High-end abstract dark geometric fintech background to be used in the login/register screen split layout.",
+      "url": "https://static.prod-images.emergentagent.com/jobs/0a19eab2-5eb8-4568-9ff2-80185a925cbe/images/a32bcfc2148611a3980435ea47e0366c2f116f099217a9daba35b0228cfc4984.png"
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Implement the UI exclusively in Portuguese (BR) as requested.",
+    "Enforce Dark Theme by applying the 'dark' class to the html/body element and using the specified neutral-950/900 color palette.",
+    "Do NOT use HTML native date pickers or select dropdowns. Use Shadcn components and customize them to fit the dark neutral theme.",
+    "All money amounts (R$) MUST use the 'font-mono' utility class to ensure numbers align properly vertically.",
+    "Add 'data-testid' attributes to ALL interactive elements (buttons, inputs, links, tabs) using kebab-case role-based naming (e.g., 'data-testid=\"login-submit-button\"').",
+    "For the Login/Register page, use a split screen layout: 50% form on the left, 50% image using the 'login_background' URL on the right.",
+    "For the Dashboard, use the 'Control Room' grid: dense, organized data presentation with a Sidebar.",
+    "Make sure text contrasts meet accessibility standards: use text-neutral-50 for primary text and text-neutral-400 for secondary text on neutral-900/950 backgrounds."
+  ]
+}
