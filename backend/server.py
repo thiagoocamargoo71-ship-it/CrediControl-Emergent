@@ -138,6 +138,7 @@ loans_router = APIRouter(prefix="/loans", tags=["Loans"])
 installments_router = APIRouter(prefix="/installments", tags=["Installments"])
 payments_router = APIRouter(prefix="/payments", tags=["Payments"])
 dashboard_router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+settings_router = APIRouter(prefix="/settings", tags=["Settings"])
 admin_router = APIRouter(prefix="/admin", tags=["Admin"])
 
 # Pydantic Models
@@ -234,6 +235,24 @@ class PaymentResponse(BaseModel):
     installment_id: str
     amount_paid: float
     payment_date: datetime
+
+# Settings models
+class UserSettingsUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class UserPreferencesUpdate(BaseModel):
+    default_interest_rate: Optional[float] = None
+    default_interval_days: Optional[int] = None
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+class UserPreferencesResponse(BaseModel):
+    default_interest_rate: Optional[float] = None
+    default_interval_days: Optional[int] = None
 
 # ============== AUTH ROUTES ==============
 
@@ -938,6 +957,123 @@ async def get_dashboard(user: dict = Depends(require_user)):
         "loans_count": len(loans)
     }
 
+# ============== SETTINGS ROUTES ==============
+
+@settings_router.get("")
+async def get_user_settings(user: dict = Depends(require_user)):
+    """Get current user settings"""
+    user_doc = await db.users.find_one({"_id": ObjectId(user["id"])}, {"password_hash": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    return {
+        "id": str(user_doc["_id"]),
+        "name": user_doc["name"],
+        "email": user_doc["email"],
+        "created_at": user_doc.get("created_at"),
+        "preferences": {
+            "default_interest_rate": user_doc.get("default_interest_rate"),
+            "default_interval_days": user_doc.get("default_interval_days")
+        }
+    }
+
+@settings_router.put("/account")
+async def update_account(data: UserSettingsUpdate, user: dict = Depends(require_user)):
+    """Update user account (name, email)"""
+    update_data = {}
+    
+    if data.name:
+        update_data["name"] = data.name
+    
+    if data.email:
+        email = data.email.lower()
+        # Check if email is already used by another user
+        existing = await db.users.find_one({"email": email, "_id": {"$ne": ObjectId(user["id"])}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email já cadastrado por outro usuário")
+        update_data["email"] = email
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
+    
+    await db.users.update_one({"_id": ObjectId(user["id"])}, {"$set": update_data})
+    
+    # Get updated user
+    updated = await db.users.find_one({"_id": ObjectId(user["id"])}, {"password_hash": 0})
+    return {
+        "message": "Dados atualizados com sucesso",
+        "user": {
+            "id": str(updated["_id"]),
+            "name": updated["name"],
+            "email": updated["email"]
+        }
+    }
+
+@settings_router.put("/password")
+async def change_password(data: PasswordChangeRequest, user: dict = Depends(require_user)):
+    """Change user password"""
+    # Validate passwords match
+    if data.new_password != data.confirm_password:
+        raise HTTPException(status_code=400, detail="As senhas não coincidem")
+    
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="A nova senha deve ter pelo menos 6 caracteres")
+    
+    # Get user with password
+    user_doc = await db.users.find_one({"_id": ObjectId(user["id"])})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verify current password
+    if not verify_password(data.current_password, user_doc["password_hash"]):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+    
+    # Hash new password and update
+    new_hash = hash_password(data.new_password)
+    await db.users.update_one(
+        {"_id": ObjectId(user["id"])},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    return {"message": "Senha alterada com sucesso"}
+
+@settings_router.get("/preferences")
+async def get_preferences(user: dict = Depends(require_user)):
+    """Get user preferences"""
+    user_doc = await db.users.find_one({"_id": ObjectId(user["id"])})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    return {
+        "default_interest_rate": user_doc.get("default_interest_rate"),
+        "default_interval_days": user_doc.get("default_interval_days")
+    }
+
+@settings_router.put("/preferences")
+async def update_preferences(data: UserPreferencesUpdate, user: dict = Depends(require_user)):
+    """Update user preferences"""
+    update_data = {}
+    
+    if data.default_interest_rate is not None:
+        if data.default_interest_rate < 0 or data.default_interest_rate > 100:
+            raise HTTPException(status_code=400, detail="Taxa de juros deve estar entre 0 e 100%")
+        update_data["default_interest_rate"] = data.default_interest_rate
+    
+    if data.default_interval_days is not None:
+        if data.default_interval_days not in [15, 30]:
+            raise HTTPException(status_code=400, detail="Intervalo deve ser 15 ou 30 dias")
+        update_data["default_interval_days"] = data.default_interval_days
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nenhuma preferência para atualizar")
+    
+    await db.users.update_one({"_id": ObjectId(user["id"])}, {"$set": update_data})
+    
+    return {
+        "message": "Preferências atualizadas com sucesso",
+        "preferences": update_data
+    }
+
 # ============== ADMIN ROUTES ==============
 
 @admin_router.get("/stats")
@@ -1103,6 +1239,7 @@ api_router.include_router(loans_router)
 api_router.include_router(installments_router)
 api_router.include_router(payments_router)
 api_router.include_router(dashboard_router)
+api_router.include_router(settings_router)
 api_router.include_router(admin_router)
 
 @api_router.get("/")

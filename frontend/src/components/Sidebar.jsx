@@ -7,7 +7,8 @@ import {
   CreditCard, 
   LogOut,
   ChevronRight,
-  Receipt
+  Receipt,
+  Settings
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -26,6 +27,7 @@ const Sidebar = () => {
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/loans', label: 'Empréstimos', icon: CreditCard },
     { path: '/installments', label: 'Parcelas', icon: Receipt },
+    { path: '/settings', label: 'Configurações', icon: Settings },
   ];
 
   const adminLinks = [

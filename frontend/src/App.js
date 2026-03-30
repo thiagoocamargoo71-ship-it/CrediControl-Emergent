@@ -12,6 +12,7 @@ import Customers from './pages/Customers';
 import Loans from './pages/Loans';
 import LoanDetails from './pages/LoanDetails';
 import Installments from './pages/Installments';
+import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 
@@ -169,6 +170,7 @@ function App() {
             <Route path="/loans" element={<ProtectedUserRoute><Loans /></ProtectedUserRoute>} />
             <Route path="/loans/:id" element={<ProtectedUserRoute><LoanDetails /></ProtectedUserRoute>} />
             <Route path="/installments" element={<ProtectedUserRoute><Installments /></ProtectedUserRoute>} />
+            <Route path="/settings" element={<ProtectedUserRoute><Settings /></ProtectedUserRoute>} />
             
             {/* Admin routes */}
             <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />

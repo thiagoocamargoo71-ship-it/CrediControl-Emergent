@@ -62,6 +62,7 @@ const Loans = () => {
     number_of_installments: '',
     interval_days: '30'
   });
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -79,12 +80,23 @@ const Loans = () => {
 
   const fetchData = async () => {
     try {
-      const [loansRes, customersRes] = await Promise.all([
+      const [loansRes, customersRes, prefsRes] = await Promise.all([
         axios.get(`${API}/loans`),
-        axios.get(`${API}/customers`)
+        axios.get(`${API}/customers`),
+        axios.get(`${API}/settings/preferences`)
       ]);
       setLoans(loansRes.data);
       setCustomers(customersRes.data);
+      
+      // Set default values from preferences
+      if (prefsRes.data && !preferencesLoaded) {
+        setFormData(prev => ({
+          ...prev,
+          interest_rate: prefsRes.data.default_interest_rate?.toString() || prev.interest_rate,
+          interval_days: prefsRes.data.default_interval_days?.toString() || prev.interval_days
+        }));
+        setPreferencesLoaded(true);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -134,15 +146,27 @@ const Loans = () => {
     }
   };
 
-  const closeModal = () => {
+  const closeModal = async () => {
     setIsModalOpen(false);
-    setFormData({
-      customer_id: '',
-      amount: '',
-      interest_rate: '',
-      number_of_installments: '',
-      interval_days: '30'
-    });
+    // Reset form with preferences
+    try {
+      const prefsRes = await axios.get(`${API}/settings/preferences`);
+      setFormData({
+        customer_id: '',
+        amount: '',
+        interest_rate: prefsRes.data.default_interest_rate?.toString() || '',
+        number_of_installments: '',
+        interval_days: prefsRes.data.default_interval_days?.toString() || '30'
+      });
+    } catch {
+      setFormData({
+        customer_id: '',
+        amount: '',
+        interest_rate: '',
+        number_of_installments: '',
+        interval_days: '30'
+      });
+    }
     setStartDate(new Date());
   };
 
@@ -368,6 +392,15 @@ const Loans = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 py-4">
+                {/* Preferences info */}
+                {(formData.interest_rate || formData.interval_days) && preferencesLoaded && (
+                  <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+                    <p className="text-xs text-blue-400">
+                      Valores preenchidos automaticamente com base nas suas configurações
+                    </p>
+                  </div>
+                )}
+                
                 {/* Customer Select */}
                 <div className="space-y-2">
                   <Label className="text-neutral-300">Cliente *</Label>
