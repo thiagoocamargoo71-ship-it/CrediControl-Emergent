@@ -23,7 +23,14 @@ Sistema SaaS web completo para gestão de empréstimos pessoais com:
 - Controla parcelas e pagamentos
 - Visualiza dashboard com métricas financeiras
 
-## Core Requirements (Static)
+## Tech Stack
+- **Frontend**: React.js + Tailwind CSS + Shadcn UI (Dark Theme)
+- **Backend**: FastAPI (Python)
+- **Database**: Supabase PostgreSQL (migrado de MongoDB em 31/03/2026)
+- **Auth**: JWT com cookies httpOnly
+- **DB Client**: supabase-py async client com service_role key
+
+## Core Requirements
 
 ### Autenticação
 - [x] Registro de usuário (nome, email, senha)
@@ -31,89 +38,60 @@ Sistema SaaS web completo para gestão de empréstimos pessoais com:
 - [x] JWT com cookies httpOnly
 - [x] Roles: admin e user
 - [x] Proteção de rotas por role
+- [x] Brute force protection
 
 ### Gestão de Clientes
-- [x] Criar cliente (nome, telefone, documento, notas)
-- [x] Editar cliente
-- [x] Excluir cliente
-- [x] Listar clientes
+- [x] CRUD completo (criar, editar, excluir, listar)
+- [x] Status do cliente (sem empréstimo, em dia, atrasado)
+- [x] Sistema de indicação (referral)
 
 ### Gestão de Empréstimos
-- [x] Criar empréstimo com cálculo automático
-- [x] Cliente, valor, juros mensal, parcelas, data inicial, intervalo
+- [x] Criar empréstimo com cálculo automático de juros
 - [x] Geração automática de parcelas
 - [x] Visualizar detalhes do empréstimo
+- [x] Excluir empréstimo (com CASCADE)
 
 ### Controle de Parcelas
 - [x] Listar parcelas por empréstimo
+- [x] Página central de parcelas com filtros
 - [x] Marcar parcela como paga
-- [x] Cálculo automático de juros de atraso
+- [x] Cálculo automático de juros de atraso (diário)
 - [x] Status: pending, paid, overdue
 
 ### Dashboard do Usuário
-- [x] Total emprestado
-- [x] Total recebido
-- [x] Total a receber
-- [x] Número de clientes
+- [x] Total emprestado, a receber, recebido
+- [x] Número de clientes e empréstimos
 - [x] Parcelas atrasadas
+- [x] Resumo financeiro
 
 ### Painel Admin
-- [x] Total de usuários
-- [x] Total de empréstimos
-- [x] Valor total movimentado
-- [x] Listar usuários
+- [x] Estatísticas gerais (usuários, empréstimos, valor total)
+- [x] CRUD de usuários
 - [x] Bloquear/desbloquear usuário
-- [x] Excluir usuário
 
-## What's Been Implemented (29/03/2026)
+### Configurações
+- [x] Atualizar perfil (nome, email)
+- [x] Alterar senha
+- [x] Preferências de empréstimo (taxa padrão, intervalo padrão)
 
-### Backend (FastAPI + MongoDB)
-- Autenticação JWT completa com bcrypt
-- CRUD de clientes com validação
-- CRUD de empréstimos com geração automática de parcelas
-- Cálculo de juros mensais e juros de atraso diário
-- Registro de pagamentos
-- Dashboard de métricas
-- Painel administrativo
-- CORS configurado para HTTPS
-- Cookies seguros para produção
-
-### Frontend (React + Tailwind + Shadcn)
-- Interface em Português (BR)
-- Tema escuro com design profissional
-- Login/Registro com validação
-- Dashboard do usuário com métricas
-- Gestão de clientes (CRUD completo)
-- Gestão de empréstimos com prévia de cálculo
-- Visualização de parcelas e pagamentos
-- Painel administrativo
-- Sidebar de navegação
+## Database Schema (Supabase PostgreSQL)
+- **users**: id (UUID), name, email, password_hash, role, is_blocked, default_interest_rate, default_interval_days, created_at
+- **login_attempts**: id (UUID), identifier, count, lockout_until
+- **customers**: id (UUID), user_id (FK), name, phone, email, document, address, notes, is_referral, referral_name, referral_phone, created_at
+- **loans**: id (UUID), user_id (FK), customer_id (FK), amount, interest_rate, total_amount, number_of_installments, start_date, interval_days, created_at
+- **installments**: id (UUID), loan_id (FK), number, amount, updated_amount, due_date, status, paid_at
+- **payments**: id (UUID), installment_id (FK), amount_paid, payment_date
 
 ## Prioritized Backlog
 
-### P0 (Critical) - ✅ Completed
-- Autenticação e autorização
-- Gestão básica de clientes
-- Criação de empréstimos com cálculo
-- Geração de parcelas
-- Registro de pagamentos
-
-### P1 (Important) - Future
+### P1 (Important) - Next
 - Contratos em PDF
-- Histórico de alterações
+- Integração WhatsApp para cobranças
 - Exportação de dados (CSV/Excel)
-- Backup automático
 
 ### P2 (Nice to Have) - Future
-- Integração com WhatsApp
 - Planos pagos (multi-tenant completo)
 - Dashboard avançado com gráficos
 - Notificações de vencimento
 - App mobile
-
-## Next Tasks List
-1. Implementar geração de contratos em PDF
-2. Adicionar gráficos no dashboard
-3. Sistema de notificações de parcelas vencidas
-4. Integração com WhatsApp para lembretes
-5. Exportação de relatórios
+- Relatórios avançados

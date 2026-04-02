@@ -4,6 +4,7 @@ import { useAuth } from '../App';
 import { 
   LayoutDashboard, 
   Users, 
+  Calculator, 
   CreditCard, 
   LogOut,
   ChevronRight,
@@ -27,6 +28,7 @@ const Sidebar = () => {
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/loans', label: 'Empréstimos', icon: CreditCard },
     { path: '/installments', label: 'Parcelas', icon: Receipt },
+    { path: '/simulator', label: 'Simulador', icon: Calculator },
     { path: '/settings', label: 'Configurações', icon: Settings },
   ];
 

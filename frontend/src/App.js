@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import axios from 'axios';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
+import Simulator from "./pages/Simulator";
 
 // Pages
 import Login from './pages/Login';
@@ -15,6 +16,9 @@ import Installments from './pages/Installments';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
+
+console.log("API URL:", process.env.REACT_APP_API_URL);
+console.log("URL completa:", `${process.env.REACT_APP_API_URL}/api/auth/me`);
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -168,6 +172,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedUserRoute><UserDashboard /></ProtectedUserRoute>} />
             <Route path="/customers" element={<ProtectedUserRoute><Customers /></ProtectedUserRoute>} />
             <Route path="/loans" element={<ProtectedUserRoute><Loans /></ProtectedUserRoute>} />
+            <Route path="/simulator" element={<Simulator />} />
             <Route path="/loans/:id" element={<ProtectedUserRoute><LoanDetails /></ProtectedUserRoute>} />
             <Route path="/installments" element={<ProtectedUserRoute><Installments /></ProtectedUserRoute>} />
             <Route path="/settings" element={<ProtectedUserRoute><Settings /></ProtectedUserRoute>} />
