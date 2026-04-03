@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
 import Simulator from "./pages/Simulator";
+import Reports from './pages/Reports';
 
 // Pages
 import Login from './pages/Login';
@@ -173,6 +174,7 @@ function App() {
             <Route path="/customers" element={<ProtectedUserRoute><Customers /></ProtectedUserRoute>} />
             <Route path="/loans" element={<ProtectedUserRoute><Loans /></ProtectedUserRoute>} />
             <Route path="/simulator" element={<Simulator />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/loans/:id" element={<ProtectedUserRoute><LoanDetails /></ProtectedUserRoute>} />
             <Route path="/installments" element={<ProtectedUserRoute><Installments /></ProtectedUserRoute>} />
             <Route path="/settings" element={<ProtectedUserRoute><Settings /></ProtectedUserRoute>} />

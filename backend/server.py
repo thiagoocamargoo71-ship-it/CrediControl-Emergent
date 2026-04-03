@@ -498,6 +498,82 @@ async def delete_loan(loan_id: str, user: dict = Depends(require_user)):
 
 # ============== INSTALLMENTS ROUTES ==============
 
+@installments_router.get("/report/all")
+async def list_all_installments_for_report(user: dict = Depends(require_user)):
+    loans = await sb_many('loans', '*', eq={'user_id': user["id"]})
+    if not loans:
+        return []
+
+    loan_ids = [loan["id"] for loan in loans]
+    loan_map = {loan["id"]: loan for loan in loans}
+
+    customer_ids = list(set(loan["customer_id"] for loan in loans))
+    customers = await sb_many('customers', 'id, name', in_={'id': customer_ids})
+    customer_map = {customer["id"]: customer["name"] for customer in customers}
+
+    insts = await sb_many('installments', '*', in_={'loan_id': loan_ids}, order='due_date')
+
+    today = datetime.now(timezone.utc).date()
+    result = []
+
+    for inst in insts:
+        loan = loan_map.get(inst["loan_id"])
+        if not loan:
+            continue
+
+        due_date = datetime.strptime(inst["due_date"], "%Y-%m-%d").date()
+        days_overdue = 0
+        updated_amount = inst["amount"]
+        status = inst["status"]
+
+        if status == "pending" and due_date < today:
+            days_overdue = (today - due_date).days
+            daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+            updated_amount = inst["amount"] + (inst["amount"] * daily_rate * days_overdue)
+            status = "overdue"
+
+            await sb_update(
+                'installments',
+                {
+                    "status": "overdue",
+                    "updated_amount": round(updated_amount, 2)
+                },
+                eq={'id': inst["id"]}
+            )
+
+        elif status == "overdue" and due_date < today:
+            days_overdue = (today - due_date).days
+            daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+            updated_amount = inst["amount"] + (inst["amount"] * daily_rate * days_overdue)
+
+            await sb_update(
+                'installments',
+                {
+                    "updated_amount": round(updated_amount, 2)
+                },
+                eq={'id': inst["id"]}
+            )
+
+        result.append({
+            "id": inst["id"],
+            "loan_id": inst["loan_id"],
+            "customer_id": loan["customer_id"],
+            "customer_name": customer_map.get(loan["customer_id"], "N/A"),
+            "number": inst["number"],
+            "amount": inst["amount"],
+            "updated_amount": round(updated_amount, 2),
+            "due_date": inst["due_date"],
+            "status": status,
+            "paid_at": inst.get("paid_at"),
+            "days_overdue": days_overdue,
+            "interest_rate": loan.get("interest_rate", 0),
+            "loan_amount": loan.get("amount", 0),
+            "loan_total": loan.get("total_amount", 0)
+        })
+
+    return result
+
+
 @installments_router.get("/loan/{loan_id}")
 async def list_installments(loan_id: str, user: dict = Depends(require_user)):
     loan = await sb_one('loans', 'id, interest_rate', eq={'id': loan_id, 'user_id': user["id"]})

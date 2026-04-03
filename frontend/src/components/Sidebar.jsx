@@ -9,7 +9,8 @@ import {
   LogOut,
   ChevronRight,
   Receipt,
-  Settings
+  Settings,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -28,6 +29,7 @@ const Sidebar = () => {
     { path: '/customers', label: 'Clientes', icon: Users },
     { path: '/loans', label: 'Empréstimos', icon: CreditCard },
     { path: '/installments', label: 'Parcelas', icon: Receipt },
+    { path: '/reports', label: 'Relatórios', icon: BarChart3 },
     { path: '/simulator', label: 'Simulador', icon: Calculator },
     { path: '/settings', label: 'Configurações', icon: Settings },
   ];
