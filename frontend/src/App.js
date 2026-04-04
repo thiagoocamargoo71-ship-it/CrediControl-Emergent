@@ -5,10 +5,12 @@ import { Toaster } from './components/ui/sonner';
 import './App.css';
 import Simulator from "./pages/Simulator";
 import Reports from './pages/Reports';
+import { Home as HomeIcon } from 'lucide-react';
 
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Home from './pages/Home';
 import UserDashboard from './pages/UserDashboard';
 import Customers from './pages/Customers';
 import Loans from './pages/Loans';
@@ -134,7 +136,7 @@ const ProtectedAdminRoute = ({ children }) => {
   }
 
   if (user.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return children;
@@ -153,7 +155,7 @@ const PublicRoute = ({ children }) => {
   }
 
   if (user) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to={user.role === 'admin' ? '/admin' : '/home'} replace />;
   }
 
   return children;
@@ -170,11 +172,12 @@ function App() {
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
             
             {/* User routes */}
+            <Route path="/home" element={<ProtectedUserRoute><Home /></ProtectedUserRoute>} />
             <Route path="/dashboard" element={<ProtectedUserRoute><UserDashboard /></ProtectedUserRoute>} />
             <Route path="/customers" element={<ProtectedUserRoute><Customers /></ProtectedUserRoute>} />
             <Route path="/loans" element={<ProtectedUserRoute><Loans /></ProtectedUserRoute>} />
-            <Route path="/simulator" element={<Simulator />} />
-            <Route path="/reports" element={<Reports />} />
+            <Route path="/simulator" element={<ProtectedUserRoute><Simulator /></ProtectedUserRoute>} />
+            <Route path="/reports" element={<ProtectedUserRoute><Reports /></ProtectedUserRoute>} />
             <Route path="/loans/:id" element={<ProtectedUserRoute><LoanDetails /></ProtectedUserRoute>} />
             <Route path="/installments" element={<ProtectedUserRoute><Installments /></ProtectedUserRoute>} />
             <Route path="/settings" element={<ProtectedUserRoute><Settings /></ProtectedUserRoute>} />
