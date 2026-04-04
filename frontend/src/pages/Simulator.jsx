@@ -1,26 +1,34 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../components/AppShell';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import {
+  ArrowRight,
+  Calculator,
+  CircleDollarSign,
+  Percent,
+  RefreshCcw,
+  Sparkles,
+} from 'lucide-react';
 
 export default function Simulator() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [rate, setRate] = useState("");
-  const [installments, setInstallments] = useState("");
+  const [amount, setAmount] = useState('');
+  const [rate, setRate] = useState('');
+  const [installments, setInstallments] = useState('');
   const [result, setResult] = useState(null);
 
   const isFilled = amount && rate && installments;
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value || 0);
-  };
 
-  // 🔁 Simulação automática
   useEffect(() => {
     if (!isFilled) return;
 
@@ -35,44 +43,40 @@ export default function Simulator() {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/simulate-loan`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            amount: Number(amount),
-            rate: Number(rate),
-            installments: Number(installments),
-          }),
-        }
-      );
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/simulate-loan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Number(amount),
+          rate: Number(rate),
+          installments: Number(installments),
+        }),
+      });
 
-      if (!res.ok) throw new Error("Erro na requisição");
+      if (!res.ok) throw new Error('Erro na requisição');
 
       const data = await res.json();
       setResult(data);
     } catch (error) {
-      console.error("Erro ao simular:", error);
+      console.error('Erro ao simular:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const resetSimulation = () => {
-    setAmount("");
-    setRate("");
-    setInstallments("");
+    setAmount('');
+    setRate('');
+    setInstallments('');
     setResult(null);
   };
 
   const handleCreateLoan = () => {
-    navigate("/loans");
+    navigate('/loans');
   };
 
-  // 📊 EXEMPLO DINÂMICO
   const exampleAmount = Number(amount) || 1000;
   const exampleRate = Number(rate) || 10;
   const exampleInstallments = Number(installments) || 10;
@@ -81,168 +85,186 @@ export default function Simulator() {
   const exampleInstallment = exampleTotal / exampleInstallments;
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <Sidebar />
-
-      <main className="ml-64 p-8">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-neutral-50">
-            Simulador
-          </h1>
-          <p className="text-neutral-400 mt-1">
-            Simule seus empréstimos
-          </p>
+    <AppShell
+      title="Simulador"
+      subtitle="Simule seus empréstimos com cálculo automático"
+    >
+      <div>
+        <div className="mb-6 hidden lg:block">
+          <h1 className="text-3xl font-bold text-neutral-50">Simulador</h1>
+          <p className="mt-1 text-neutral-400">Simule seus empréstimos</p>
         </div>
 
-        {/* CARD */}
-        <div className="bg-zinc-900 p-6 rounded-xl max-w-4xl mx-auto animate-fade-in-delay-1">
-          
-          {/* INPUTS FIXOS */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <input
-              className="p-3 rounded bg-zinc-800 text-white"
-              placeholder="Valor (ex: 1000)"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-
-            <input
-              className="p-3 rounded bg-zinc-800 text-white"
-              placeholder="Taxa (%) (ex: 10)"
-              value={rate}
-              onChange={(e) => setRate(e.target.value)}
-            />
-
-            <input
-              className="p-3 rounded bg-zinc-800 text-white"
-              placeholder="Parcelas (ex: 12)"
-              value={installments}
-              onChange={(e) => setInstallments(e.target.value)}
-            />
-          </div>
-
-          {/* 🔵 RESUMO INTELIGENTE */}
-          {!result && !loading && (
-            <div className="animate-fade-in">
-
-              <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-5 text-sm text-neutral-300 space-y-4">
-                
-                {/* DICA */}
+        <div className="mx-auto max-w-5xl">
+          <div className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/10">
+            <div className="border-b border-neutral-800 bg-gradient-to-r from-blue-600/10 via-indigo-500/5 to-transparent p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                  <Calculator className="h-5 w-5 text-blue-400" />
+                </div>
                 <div>
-                  <p className="text-neutral-400 text-xs mb-1">💡 Dica</p>
-                  <p>
-                    Taxas entre <span className="text-white font-medium">5% e 15%</span> são mais utilizadas no mercado.
-                  </p>
-                </div>
-
-                {/* EXEMPLO DINÂMICO */}
-                <div className="border-t border-neutral-700 pt-3">
-                  <p className="text-neutral-400 text-xs mb-1">📊 Simulação rápida</p>
-                  <p>
-                    {formatCurrency(exampleAmount)} →{" "}
-                    <span className="text-white font-medium">
-                      {formatCurrency(exampleTotal)}
-                    </span>{" "}
-                    em {exampleInstallments}x de{" "}
-                    <span className="text-emerald-500 font-medium">
-                      {formatCurrency(exampleInstallment)}
-                    </span>
-                  </p>
-                </div>
-
-                {/* BENEFÍCIO */}
-                <div className="border-t border-neutral-700 pt-3">
-                  <p className="text-neutral-400 text-xs mb-1">⚡ Benefício</p>
-                  <p>
-                    Veja automaticamente o lucro e tome decisões mais rápidas.
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-          {/* LOADING */}
-          {loading && (
-            <div className="flex justify-center mt-6">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          )}
-
-          {/* RESULTADO */}
-          {result && !loading && (
-            <div className="mt-6 animate-fade-in">
-
-              {/* Cards */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-neutral-800 p-4 rounded-lg">
-                  <p className="text-xs text-neutral-400">Total</p>
-                  <p className="text-lg font-bold text-white">
-                    {formatCurrency(result.total)}
-                  </p>
-                </div>
-
-                <div className="bg-neutral-800 p-4 rounded-lg">
-                  <p className="text-xs text-neutral-400">Juros</p>
-                  <p className="text-lg font-bold text-amber-500">
-                    {formatCurrency(result.interest)}
-                  </p>
-                </div>
-
-                <div className="bg-neutral-800 p-4 rounded-lg">
-                  <p className="text-xs text-neutral-400">Parcela</p>
-                  <p className="text-lg font-bold text-emerald-500">
-                    {formatCurrency(result.installment_value)}
+                  <h2 className="text-lg font-semibold text-neutral-50">
+                    Simulação Inteligente
+                  </h2>
+                  <p className="text-sm text-neutral-400">
+                    Preencha os campos e veja o resultado automaticamente
                   </p>
                 </div>
               </div>
+            </div>
 
-              {/* Parcelas */}
-              <div className="mt-8">
-                <h3 className="text-sm text-neutral-400 mb-3">
-                  Parcelas
-                </h3>
+            <div className="p-4 sm:p-6 lg:p-8">
+              {/* Inputs */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm text-neutral-300">Valor</label>
+                  <div className="relative">
+                    <CircleDollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                    <Input
+                      className="h-12 rounded-2xl border-neutral-800 bg-neutral-950 pl-10 text-white"
+                      placeholder="Ex: 1000"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
 
                 <div className="space-y-2">
-                  {[...Array(Number(installments))].map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between bg-neutral-800 p-3 rounded"
-                    >
-                      <span className="text-neutral-300">
-                        Parcela {i + 1}
-                      </span>
-                      <span className="text-white font-medium">
-                        {formatCurrency(result.installment_value)}
-                      </span>
-                    </div>
-                  ))}
+                  <label className="text-sm text-neutral-300">Taxa (%)</label>
+                  <div className="relative">
+                    <Percent className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                    <Input
+                      className="h-12 rounded-2xl border-neutral-800 bg-neutral-950 pl-10 text-white"
+                      placeholder="Ex: 10"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm text-neutral-300">Parcelas</label>
+                  <div className="relative">
+                    <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                    <Input
+                      className="h-12 rounded-2xl border-neutral-800 bg-neutral-950 pl-10 text-white"
+                      placeholder="Ex: 12"
+                      value={installments}
+                      onChange={(e) => setInstallments(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* BOTÕES */}
-              <div className="mt-6 flex gap-4">
-                <button
-                  onClick={resetSimulation}
-                  className="w-1/2 bg-zinc-700 p-3 rounded hover:bg-zinc-600 text-white"
-                >
-                  Nova simulação
-                </button>
+              {/* Estado inicial */}
+              {!result && !loading && (
+                <div className="mt-6 animate-fade-in">
+                  <div className="space-y-4 rounded-2xl border border-neutral-700 bg-neutral-800 p-5 text-sm text-neutral-300">
+                    <div>
+                      <p className="mb-1 text-xs text-neutral-400">💡 Dica</p>
+                      <p>
+                        Taxas entre <span className="font-medium text-white">5% e 15%</span> são
+                        comuns em muitas operações.
+                      </p>
+                    </div>
 
-                <button
-                  onClick={handleCreateLoan}
-                  className="w-1/2 bg-emerald-600 p-3 rounded hover:bg-emerald-700 text-white font-medium"
-                >
-                  Criar empréstimo
-                </button>
-              </div>
+                    <div className="border-t border-neutral-700 pt-3">
+                      <p className="mb-1 text-xs text-neutral-400">📊 Simulação rápida</p>
+                      <p>
+                        {formatCurrency(exampleAmount)} →{' '}
+                        <span className="font-medium text-white">
+                          {formatCurrency(exampleTotal)}
+                        </span>{' '}
+                        em {exampleInstallments}x de{' '}
+                        <span className="font-medium text-emerald-500">
+                          {formatCurrency(exampleInstallment)}
+                        </span>
+                      </p>
+                    </div>
 
+                    <div className="border-t border-neutral-700 pt-3">
+                      <p className="mb-1 text-xs text-neutral-400">⚡ Benefício</p>
+                      <p>Veja automaticamente o lucro e tome decisões mais rápidas.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading */}
+              {loading && (
+                <div className="mt-6 flex justify-center">
+                  <div className="h-7 w-7 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
+                </div>
+              )}
+
+              {/* Resultado */}
+              {result && !loading && (
+                <div className="mt-6 animate-fade-in">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-2xl border border-neutral-800 bg-neutral-800 p-4">
+                      <p className="text-xs text-neutral-400">Total</p>
+                      <p className="text-lg font-bold text-white">
+                        {formatCurrency(result.total)}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-neutral-800 bg-neutral-800 p-4">
+                      <p className="text-xs text-neutral-400">Juros</p>
+                      <p className="text-lg font-bold text-amber-500">
+                        {formatCurrency(result.interest)}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-neutral-800 bg-neutral-800 p-4">
+                      <p className="text-xs text-neutral-400">Parcela</p>
+                      <p className="text-lg font-bold text-emerald-500">
+                        {formatCurrency(result.installment_value)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <h3 className="mb-3 text-sm text-neutral-400">Parcelas</h3>
+
+                    <div className="space-y-2">
+                      {[...Array(Number(installments))].map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-2xl border border-neutral-800 bg-neutral-800 p-3"
+                        >
+                          <span className="text-neutral-300">Parcela {i + 1}</span>
+                          <span className="font-medium text-white">
+                            {formatCurrency(result.installment_value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      onClick={resetSimulation}
+                      variant="outline"
+                      className="h-11 rounded-2xl border-neutral-700 bg-neutral-900 text-white hover:bg-neutral-800"
+                    >
+                      <RefreshCcw className="mr-2 h-4 w-4" />
+                      Nova simulação
+                    </Button>
+
+                    <Button
+                      onClick={handleCreateLoan}
+                      className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Criar empréstimo
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

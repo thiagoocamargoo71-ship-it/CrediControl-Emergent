@@ -2,15 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API } from '../App';
-import Sidebar from '../components/Sidebar';
+import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import {
-  AlertTriangle,
   ArrowRight,
   Briefcase,
   CalendarClock,
-  CheckCircle2,
   CircleDollarSign,
   CreditCard,
   Gauge,
@@ -216,7 +214,6 @@ const Dashboard = () => {
           homeData.risk.criticalRiskCustomers === 1
             ? '1 cliente exige ação imediata'
             : `${homeData.risk.criticalRiskCustomers} clientes exigem ação imediata`,
-        tone: 'rose',
       });
     }
 
@@ -227,7 +224,6 @@ const Dashboard = () => {
           homeData.portfolio.installmentsDueToday === 1
             ? '1 parcela vence hoje'
             : `${homeData.portfolio.installmentsDueToday} parcelas vencem hoje`,
-        tone: 'amber',
       });
     }
 
@@ -235,7 +231,6 @@ const Dashboard = () => {
       items.push({
         title: 'Caixa projetado',
         value: 'Operação com pressão no curto prazo',
-        tone: 'rose',
       });
     }
 
@@ -243,7 +238,6 @@ const Dashboard = () => {
       items.push({
         title: 'Concentração da carteira',
         value: `${formatPercent(homeData.risk.concentrationTopCustomersPercent)} concentrados nos principais clientes`,
-        tone: 'amber',
       });
     }
 
@@ -251,7 +245,6 @@ const Dashboard = () => {
       items.push({
         title: 'Sem alerta dominante',
         value: 'A operação não apresenta pressão crítica agora',
-        tone: 'emerald',
       });
     }
 
@@ -309,82 +302,90 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950">
-        <Sidebar />
-        <main className="ml-64 p-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-10 w-72 rounded-lg bg-neutral-900" />
-            <div className="h-64 rounded-2xl bg-neutral-900 border border-neutral-800" />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, index) => (
-                <div
-                  key={index}
-                  className="h-32 rounded-2xl bg-neutral-900 border border-neutral-800"
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="h-80 rounded-2xl bg-neutral-900 border border-neutral-800 xl:col-span-2" />
-              <div className="h-80 rounded-2xl bg-neutral-900 border border-neutral-800" />
-            </div>
+      <AppShell
+        title="Resumo Inteligente"
+        subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+      >
+        <div className="animate-pulse space-y-5 sm:space-y-6">
+          <div className="h-8 w-56 rounded-lg bg-neutral-900 sm:h-10 sm:w-72" />
+          <div className="h-72 rounded-3xl border border-neutral-800 bg-neutral-900" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className="h-32 rounded-3xl border border-neutral-800 bg-neutral-900"
+              />
+            ))}
           </div>
-        </main>
-      </div>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            <div className="h-80 rounded-3xl border border-neutral-800 bg-neutral-900 xl:col-span-2" />
+            <div className="h-80 rounded-3xl border border-neutral-800 bg-neutral-900" />
+          </div>
+        </div>
+      </AppShell>
     );
   }
 
   if (!homeData || !executiveSummary || !statusMeta) {
     return (
-      <div className="min-h-screen bg-neutral-950">
-        <Sidebar />
-        <main className="ml-64 p-8">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center">
-            <Briefcase className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-neutral-50 mb-2">
-              Seu dashboard inteligente vai aparecer aqui
-            </h1>
-            <p className="text-neutral-400 max-w-2xl mx-auto mb-6">
-              Assim que você tiver clientes, empréstimos e parcelas cadastrados, o sistema
-              começará a montar seu resumo executivo, score da operação e alertas
-              inteligentes.
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <Button
-                onClick={() => navigate('/customers')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Cadastrar clientes
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/loans')}
-                className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
-              >
-                Ir para empréstimos
-              </Button>
-            </div>
+      <AppShell
+        title="Resumo Inteligente"
+        subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+      >
+        <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 text-center sm:p-8 lg:p-10">
+          <Briefcase className="mx-auto mb-4 h-12 w-12 text-neutral-600" />
+          <h1 className="mb-2 text-2xl font-bold text-neutral-50">
+            Seu dashboard inteligente vai aparecer aqui
+          </h1>
+          <p className="mx-auto mb-6 max-w-2xl text-neutral-400">
+            Assim que você tiver clientes, empréstimos e parcelas cadastrados, o sistema
+            começará a montar seu resumo executivo, score da operação e alertas inteligentes.
+          </p>
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              onClick={() => navigate('/customers')}
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+            >
+              Cadastrar clientes
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/loans')}
+              className="w-full border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800 sm:w-auto"
+            >
+              Ir para empréstimos
+            </Button>
           </div>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
   const statusStyles = getStatusStyles(executiveSummary.status);
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <Sidebar />
-
-      <main className="ml-64 p-8" data-testid="dashboard-page">
-        <div className="flex items-start justify-between gap-4 mb-8 animate-fade-in">
+    <AppShell
+      title="Resumo Inteligente"
+      subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+      rightAction={
+        <Button
+          onClick={() => fetchDashboardData(true)}
+          variant="outline"
+          className="hidden h-11 border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800 sm:inline-flex lg:hidden"
+        >
+          Atualizar
+        </Button>
+      }
+    >
+      <div data-testid="dashboard-page">
+        {/* Header desktop */}
+        <div className="mb-6 hidden items-start justify-between gap-4 lg:flex">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="font-heading text-3xl font-bold text-neutral-50 tracking-tight">
+            <div className="mb-2 flex items-center gap-3">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
                 Resumo Inteligente
               </h1>
-              {refreshing && (
-                <span className="text-xs text-neutral-500">Atualizando...</span>
-              )}
+              {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}
             </div>
             <p className="text-neutral-400">
               Sua leitura operacional da carteira, do risco e das oportunidades.
@@ -400,28 +401,31 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        <section
-          className={`relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 mb-6 animate-fade-in`}
-        >
+        {/* Header mobile status */}
+        <div className="mb-4 lg:hidden">
+          {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}
+        </div>
+
+        <section className="relative mb-6 overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 animate-fade-in">
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${statusStyles.accent} pointer-events-none`}
+            className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${statusStyles.accent}`}
           />
 
-          <div className="relative p-6 md:p-8">
-            <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+          <div className="relative p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-3 mb-5">
+                <div className="mb-5 flex flex-wrap items-center gap-3">
                   <div
-                    className={`h-11 w-11 rounded-xl border flex items-center justify-center ${statusStyles.iconWrap}`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl border ${statusStyles.iconWrap}`}
                   >
                     <Sparkles className={`h-5 w-5 ${statusStyles.iconColor}`} />
                   </div>
 
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-neutral-500 font-semibold">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
                       Resumo Executivo Inteligente
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
                       <Badge className={`${statusStyles.badge} border`}>
                         {statusMeta.label}
                       </Badge>
@@ -432,42 +436,42 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <p className="text-neutral-50 text-lg leading-8 max-w-4xl">
+                <p className="max-w-4xl text-base leading-7 text-neutral-50 sm:text-lg sm:leading-8">
                   {executiveSummary.headline}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                  <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-4">
-                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950/70 p-4">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                       Recebimentos 7 dias
                     </p>
-                    <p className="text-xl font-mono font-bold text-neutral-50">
+                    <p className="break-words text-xl font-bold text-neutral-50 sm:text-2xl">
                       {formatCurrency(executiveSummary.metrics.expectedReceipts7d)}
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-4">
-                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950/70 p-4">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                       Inadimplência
                     </p>
-                    <p className="text-xl font-mono font-bold text-neutral-50">
+                    <p className="text-xl font-bold text-neutral-50 sm:text-2xl">
                       {formatPercent(executiveSummary.metrics.delinquencyRate)}
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-4">
-                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950/70 p-4">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                       Clientes em risco
                     </p>
-                    <p className="text-xl font-mono font-bold text-neutral-50">
+                    <p className="text-xl font-bold text-neutral-50 sm:text-2xl">
                       {executiveSummary.metrics.riskyClients}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 rounded-xl border border-neutral-800 bg-neutral-950/60 p-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold mb-1">
+                <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                       Ação recomendada
                     </p>
                     <p className="text-neutral-200">{executiveSummary.recommendedAction}</p>
@@ -475,7 +479,7 @@ const Dashboard = () => {
 
                   <Button
                     onClick={quickAction.onClick}
-                    className="bg-blue-600 hover:bg-blue-700 text-white gap-2 self-start lg:self-auto"
+                    className="h-11 w-full gap-2 self-start bg-blue-600 text-white hover:bg-blue-700 sm:w-auto lg:self-auto"
                   >
                     {quickAction.label}
                     <ArrowRight className="h-4 w-4" />
@@ -483,25 +487,23 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="xl:w-[260px]">
+              <div className="xl:w-[280px]">
                 <div
-                  className={`rounded-2xl border p-5 ${statusStyles.score} backdrop-blur-sm`}
+                  className={`rounded-3xl border p-5 backdrop-blur-sm ${statusStyles.score}`}
                 >
-                  <p className="text-xs uppercase tracking-[0.18em] font-semibold opacity-80">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">
                     Score da operação
                   </p>
                   <div className="mt-4 flex items-end gap-2">
                     <span className="text-5xl font-bold leading-none">
                       {executiveSummary.score}
                     </span>
-                    <span className="text-base opacity-80 mb-1">/100</span>
+                    <span className="mb-1 text-base opacity-80">/100</span>
                   </div>
-                  <p className="mt-3 text-sm opacity-90">
-                    {statusMeta.description}
-                  </p>
+                  <p className="mt-3 text-sm opacity-90">{statusMeta.description}</p>
 
                   <div className="mt-5 grid grid-cols-1 gap-3">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                       <p className="text-xs uppercase tracking-wider opacity-70">
                         Caixa projetado
                       </p>
@@ -510,7 +512,7 @@ const Dashboard = () => {
                       </p>
                     </div>
 
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                       <p className="text-xs uppercase tracking-wider opacity-70">
                         Concentração
                       </p>
@@ -525,77 +527,77 @@ const Dashboard = () => {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 animate-fade-in">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+        <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 animate-fade-in">
+          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                   Total emprestado
                 </p>
-                <p className="mt-2 text-2xl font-mono font-bold text-neutral-50">
+                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
                   {formatCurrency(homeData.portfolio.totalLoaned)}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
                 <CircleDollarSign className="h-5 w-5 text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                   Em aberto
                 </p>
-                <p className="mt-2 text-2xl font-mono font-bold text-neutral-50">
+                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
                   {formatCurrency(homeData.portfolio.totalOpenBalance)}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
                 <CreditCard className="h-5 w-5 text-amber-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                   A receber em 7 dias
                 </p>
-                <p className="mt-2 text-2xl font-mono font-bold text-neutral-50">
+                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
                   {formatCurrency(homeData.cashflow.expectedNext7Days)}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
                 <TrendingUp className="h-5 w-5 text-emerald-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                   Clientes ativos
                 </p>
-                <p className="mt-2 text-2xl font-mono font-bold text-neutral-50">
+                <p className="mt-2 text-2xl font-bold text-neutral-50">
                   {homeData.portfolio.activeCustomers}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+              <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3">
                 <Users className="h-5 w-5 text-violet-400" />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in">
-          <div className="xl:col-span-2 space-y-6">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-3 animate-fade-in">
+          <div className="space-y-6 xl:col-span-2">
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3">
                   <ShieldAlert className="h-5 w-5 text-rose-400" />
                 </div>
                 <div>
@@ -606,22 +608,22 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {alertItems.map((item, index) => (
                   <div
                     key={`${item.title}-${index}`}
-                    className="rounded-xl border border-neutral-800 bg-neutral-950 p-4"
+                    className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4"
                   >
                     <p className="text-sm font-semibold text-neutral-100">{item.title}</p>
-                    <p className="text-sm text-neutral-400 mt-1">{item.value}</p>
+                    <p className="mt-1 text-sm text-neutral-400">{item.value}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
                   <Sparkles className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
@@ -632,14 +634,14 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {opportunityItems.map((item, index) => (
                   <div
                     key={`${item.title}-${index}`}
-                    className="rounded-xl border border-neutral-800 bg-neutral-950 p-4"
+                    className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4"
                   >
                     <p className="text-sm font-semibold text-neutral-100">{item.title}</p>
-                    <p className="text-sm text-neutral-400 mt-1">{item.value}</p>
+                    <p className="mt-1 text-sm text-neutral-400">{item.value}</p>
                   </div>
                 ))}
               </div>
@@ -647,9 +649,9 @@ const Dashboard = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
                   <Gauge className="h-5 w-5 text-emerald-400" />
                 </div>
                 <div>
@@ -661,27 +663,27 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                  <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Score geral
                   </p>
                   <p className="mt-2 text-3xl font-bold text-neutral-50">
                     {executiveSummary.score}
-                    <span className="text-neutral-500 text-lg">/100</span>
+                    <span className="text-lg text-neutral-500">/100</span>
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                  <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Inadimplência
                   </p>
-                  <p className="mt-2 text-xl font-mono font-bold text-neutral-50">
+                  <p className="mt-2 text-xl font-bold text-neutral-50">
                     {formatPercent(homeData.portfolio.delinquencyRate)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                  <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Caixa projetado
                   </p>
                   <p className="mt-2 text-xl font-semibold capitalize text-neutral-50">
@@ -689,8 +691,8 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4">
-                  <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Parcelas em atraso
                   </p>
                   <p className="mt-2 text-xl font-bold text-neutral-50">
@@ -700,9 +702,9 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
                   <CalendarClock className="h-5 w-5 text-amber-400" />
                 </div>
                 <div>
@@ -716,30 +718,30 @@ const Dashboard = () => {
               <div className="space-y-3">
                 <button
                   onClick={() => navigate('/installments')}
-                  className="w-full text-left rounded-xl border border-neutral-800 bg-neutral-950 p-4 hover:bg-neutral-900 transition-colors"
+                  className="w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-left transition-colors hover:bg-neutral-900"
                 >
                   <p className="text-sm font-semibold text-neutral-100">Parcelas</p>
-                  <p className="text-sm text-neutral-400 mt-1">
+                  <p className="mt-1 text-sm text-neutral-400">
                     Acompanhe vencimentos, atrasos e pagamentos
                   </p>
                 </button>
 
                 <button
                   onClick={() => navigate('/loans')}
-                  className="w-full text-left rounded-xl border border-neutral-800 bg-neutral-950 p-4 hover:bg-neutral-900 transition-colors"
+                  className="w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-left transition-colors hover:bg-neutral-900"
                 >
                   <p className="text-sm font-semibold text-neutral-100">Empréstimos</p>
-                  <p className="text-sm text-neutral-400 mt-1">
+                  <p className="mt-1 text-sm text-neutral-400">
                     Revise a carteira e a concentração por cliente
                   </p>
                 </button>
 
                 <button
                   onClick={() => navigate('/customers')}
-                  className="w-full text-left rounded-xl border border-neutral-800 bg-neutral-950 p-4 hover:bg-neutral-900 transition-colors"
+                  className="w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-left transition-colors hover:bg-neutral-900"
                 >
                   <p className="text-sm font-semibold text-neutral-100">Clientes</p>
-                  <p className="text-sm text-neutral-400 mt-1">
+                  <p className="mt-1 text-sm text-neutral-400">
                     Analise perfis, bons pagadores e novas oportunidades
                   </p>
                 </button>
@@ -747,8 +749,8 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 

@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API, formatApiErrorDetail } from '../App';
-import Sidebar from '../components/Sidebar';
+import AppShell from '../components/AppShell';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ import {
   FileText,
   CalendarDays,
   Wallet,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
 
 const getCurrentMonth = () => {
@@ -36,7 +36,7 @@ const Reports = () => {
   const fetchReportData = async () => {
     try {
       const response = await axios.get(`${API}/installments/report/all`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setInstallments(response.data || []);
     } catch (error) {
@@ -48,12 +48,11 @@ const Reports = () => {
     }
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value || 0);
-  };
 
   const formatDate = (dateValue) => {
     if (!dateValue) return '-';
@@ -70,7 +69,7 @@ const Reports = () => {
 
     return new Intl.DateTimeFormat('pt-BR', {
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     }).format(date);
   };
 
@@ -78,7 +77,7 @@ const Reports = () => {
     const labels = {
       paid: 'Pago',
       pending: 'Pendente',
-      overdue: 'Atrasado'
+      overdue: 'Atrasado',
     };
 
     return labels[status] || status;
@@ -155,7 +154,7 @@ const Reports = () => {
       totalReceived,
       totalOpen,
       totalCount,
-      overdueCount
+      overdueCount,
     };
   }, [filteredInstallments]);
 
@@ -174,7 +173,7 @@ const Reports = () => {
           month: monthKey,
           received: 0,
           open: 0,
-          count: 0
+          count: 0,
         };
       }
 
@@ -209,21 +208,21 @@ const Reports = () => {
         'Dias de Atraso': Number(item.days_overdue || 0),
         'Taxa de Juros (%)': Number(item.interest_rate || 0),
         'Valor Empréstimo': Number(item.loan_amount || 0),
-        'Total Empréstimo': Number(item.loan_total || 0)
+        'Total Empréstimo': Number(item.loan_total || 0),
       }));
 
       const summaryRows = [
         { Indicador: 'Total Recebido', Valor: Number(summary.totalReceived || 0) },
         { Indicador: 'Total em Aberto', Valor: Number(summary.totalOpen || 0) },
         { Indicador: 'Quantidade de Parcelas', Valor: Number(summary.totalCount || 0) },
-        { Indicador: 'Quantidade Atrasadas', Valor: Number(summary.overdueCount || 0) }
+        { Indicador: 'Quantidade Atrasadas', Valor: Number(summary.overdueCount || 0) },
       ];
 
       const monthlyRows = monthlySummary.map((item) => ({
         Mês: formatMonthLabel(item.month),
         'Total Recebido': Number(item.received || 0),
         'Total em Aberto': Number(item.open || 0),
-        Quantidade: Number(item.count || 0)
+        Quantidade: Number(item.count || 0),
       }));
 
       const workbook = XLSX.utils.book_new();
@@ -244,28 +243,22 @@ const Reports = () => {
         { wch: 14 },
         { wch: 16 },
         { wch: 18 },
-        { wch: 18 }
+        { wch: 18 },
       ];
 
-      summarySheet['!cols'] = [
-        { wch: 26 },
-        { wch: 18 }
-      ];
-
+      summarySheet['!cols'] = [{ wch: 26 }, { wch: 18 }];
       monthlySheet['!cols'] = [
         { wch: 22 },
         { wch: 18 },
         { wch: 18 },
-        { wch: 14 }
+        { wch: 14 },
       ];
 
       XLSX.utils.book_append_sheet(workbook, summarySheet, 'Resumo');
       XLSX.utils.book_append_sheet(workbook, monthlySheet, 'Resumo Mensal');
       XLSX.utils.book_append_sheet(workbook, detailsSheet, 'Parcelas');
 
-      const fileName = `relatorio-credicontrol-${getPeriodLabel()}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-
+      XLSX.writeFile(workbook, `relatorio-credicontrol-${getPeriodLabel()}.xlsx`);
       toast.success('Relatório Excel exportado com sucesso!');
     } catch (error) {
       console.error(error);
@@ -343,7 +336,7 @@ const Reports = () => {
         w: cardWidth,
         h: cardHeight,
         title: 'Total Recebido',
-        value: formatCurrency(summary.totalReceived)
+        value: formatCurrency(summary.totalReceived),
       });
 
       drawKpiCard({
@@ -352,7 +345,7 @@ const Reports = () => {
         w: cardWidth,
         h: cardHeight,
         title: 'Total em Aberto',
-        value: formatCurrency(summary.totalOpen)
+        value: formatCurrency(summary.totalOpen),
       });
 
       drawKpiCard({
@@ -361,7 +354,7 @@ const Reports = () => {
         w: cardWidth,
         h: cardHeight,
         title: 'Quantidade de Parcelas',
-        value: summary.totalCount
+        value: summary.totalCount,
       });
 
       drawKpiCard({
@@ -370,7 +363,7 @@ const Reports = () => {
         w: cardWidth,
         h: cardHeight,
         title: 'Parcelas Atrasadas',
-        value: summary.overdueCount
+        value: summary.overdueCount,
       });
 
       doc.setFont('helvetica', 'bold');
@@ -380,21 +373,14 @@ const Reports = () => {
 
       autoTable(doc, {
         startY: 116,
-        head: [[
-          'Cliente',
-          'Parcela',
-          'Status',
-          'Vencimento',
-          'Atualizado',
-          'Atraso'
-        ]],
+        head: [['Cliente', 'Parcela', 'Status', 'Vencimento', 'Atualizado', 'Atraso']],
         body: filteredInstallments.map((item) => [
           item.customer_name || '-',
           `#${item.number}`,
           getStatusLabel(item.status),
           formatDate(item.due_date),
           formatCurrency(item.updated_amount || 0),
-          item.days_overdue ? `${item.days_overdue} dias` : '-'
+          item.days_overdue ? `${item.days_overdue} dias` : '-',
         ]),
         theme: 'grid',
         headStyles: {
@@ -402,20 +388,20 @@ const Reports = () => {
           textColor: [255, 255, 255],
           fontStyle: 'bold',
           fontSize: 9,
-          halign: 'left'
+          halign: 'left',
         },
         bodyStyles: {
           fontSize: 9,
           textColor: [31, 41, 55],
-          cellPadding: 3
+          cellPadding: 3,
         },
         alternateRowStyles: {
-          fillColor: [248, 250, 252]
+          fillColor: [248, 250, 252],
         },
         styles: {
           lineColor: [226, 232, 240],
           lineWidth: 0.2,
-          overflow: 'linebreak'
+          overflow: 'linebreak',
         },
         columnStyles: {
           0: { cellWidth: 42 },
@@ -423,9 +409,9 @@ const Reports = () => {
           2: { cellWidth: 26, halign: 'center' },
           3: { cellWidth: 28, halign: 'center' },
           4: { cellWidth: 34, halign: 'right' },
-          5: { cellWidth: 24, halign: 'center' }
+          5: { cellWidth: 24, halign: 'center' },
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14 },
       });
 
       doc.addPage();
@@ -445,44 +431,39 @@ const Reports = () => {
 
       autoTable(doc, {
         startY: 40,
-        head: [[
-          'Mês',
-          'Total Recebido',
-          'Total em Aberto',
-          'Quantidade'
-        ]],
+        head: [['Mês', 'Total Recebido', 'Total em Aberto', 'Quantidade']],
         body: monthlySummary.map((item) => [
           formatMonthLabel(item.month),
           formatCurrency(item.received),
           formatCurrency(item.open),
-          String(item.count)
+          String(item.count),
         ]),
         theme: 'grid',
         headStyles: {
           fillColor: [30, 41, 59],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: 10
+          fontSize: 10,
         },
         bodyStyles: {
           fontSize: 10,
           textColor: [31, 41, 55],
-          cellPadding: 4
+          cellPadding: 4,
         },
         alternateRowStyles: {
-          fillColor: [248, 250, 252]
+          fillColor: [248, 250, 252],
         },
         styles: {
           lineColor: [226, 232, 240],
-          lineWidth: 0.2
+          lineWidth: 0.2,
         },
         columnStyles: {
           0: { cellWidth: 55 },
           1: { cellWidth: 40, halign: 'right' },
           2: { cellWidth: 40, halign: 'right' },
-          3: { cellWidth: 28, halign: 'center' }
+          3: { cellWidth: 28, halign: 'center' },
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 14, right: 14 },
       });
 
       const pageCount = doc.getNumberOfPages();
@@ -500,9 +481,7 @@ const Reports = () => {
         doc.text(`Página ${i} de ${pageCount}`, pageWidth - 34, pageHeight - 7);
       }
 
-      const fileName = `relatorio-credicontrol-${getPeriodLabel()}.pdf`;
-      doc.save(fileName);
-
+      doc.save(`relatorio-credicontrol-${getPeriodLabel()}.pdf`);
       toast.success('Relatório PDF exportado com sucesso!');
     } catch (error) {
       console.error(error);
@@ -518,66 +497,90 @@ const Reports = () => {
       : 'bg-neutral-900 text-neutral-300 border border-neutral-700 hover:bg-neutral-800 hover:text-white';
   };
 
+  const rightAction = (
+    <div className="hidden sm:flex items-center gap-2">
+      <Button
+        onClick={handleExportExcel}
+        disabled={!filteredInstallments.length}
+        className="h-11 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
+      >
+        <FileSpreadsheet className="mr-2 h-4 w-4" />
+        Excel
+      </Button>
+      <Button
+        onClick={handleExportPDF}
+        disabled={!filteredInstallments.length}
+        className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
+      >
+        <FileText className="mr-2 h-4 w-4" />
+        PDF
+      </Button>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950">
-        <Sidebar />
-        <main className="ml-64 p-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        </main>
-      </div>
+      <AppShell
+        title="Relatórios"
+        subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
+        rightAction={rightAction}
+      >
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <Sidebar />
-
-      <main className="ml-64 p-8" data-testid="reports-page">
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-300 text-xs font-medium mb-4">
+    <AppShell
+      title="Relatórios"
+      subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
+      rightAction={rightAction}
+    >
+      <div data-testid="reports-page">
+        <div className="mb-8 hidden lg:block">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
             <BarChart3 className="h-4 w-4" />
             Painel de Relatórios
           </div>
 
-          <h1 className="font-heading text-3xl font-bold text-neutral-50 tracking-tight">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
             Relatórios
           </h1>
-          <p className="text-neutral-400 mt-1">
+          <p className="mt-1 text-neutral-400">
             Visualize o desempenho financeiro e acompanhe sua operação por período.
           </p>
         </div>
 
-        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-8">
+        <div className="mb-8 flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={() => setPeriod('all')}
-              className={`rounded-xl px-4 py-2 transition-all ${getFilterButtonClass('all')}`}
+              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('all')}`}
             >
               Todos
             </Button>
 
             <Button
               onClick={() => setPeriod('7days')}
-              className={`rounded-xl px-4 py-2 transition-all ${getFilterButtonClass('7days')}`}
+              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('7days')}`}
             >
               7 dias
             </Button>
 
             <Button
               onClick={() => setPeriod('30days')}
-              className={`rounded-xl px-4 py-2 transition-all ${getFilterButtonClass('30days')}`}
+              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('30days')}`}
             >
               30 dias
             </Button>
 
             <Button
               onClick={() => setPeriod('month')}
-              className={`rounded-xl px-4 py-2 transition-all ${getFilterButtonClass('month')}`}
+              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('month')}`}
             >
-              <CalendarDays className="h-4 w-4 mr-2" />
+              <CalendarDays className="mr-2 h-4 w-4" />
               Por mês
             </Button>
 
@@ -586,128 +589,246 @@ const Reports = () => {
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-10 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-100 px-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                className="h-11 rounded-2xl border border-neutral-700 bg-neutral-900 px-4 text-neutral-200 outline-none transition-colors focus:border-blue-500"
               />
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-2 sm:hidden">
             <Button
-              variant="outline"
               onClick={handleExportExcel}
-              className="rounded-xl border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200 gap-2 shadow-lg shadow-emerald-950/20"
+              disabled={!filteredInstallments.length}
+              className="h-11 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
             >
-              <FileSpreadsheet className="h-4 w-4" />
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
               Exportar Excel
             </Button>
-
             <Button
-              variant="outline"
               onClick={handleExportPDF}
-              className="rounded-xl border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 gap-2 shadow-lg shadow-rose-950/20"
+              disabled={!filteredInstallments.length}
+              className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="mr-2 h-4 w-4" />
               Exportar PDF
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-neutral-900 border-neutral-800 rounded-2xl shadow-xl shadow-black/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-emerald-400" />
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Total Recebido
+                  </p>
+                  <p className="mt-2 break-words text-2xl font-bold text-emerald-400">
+                    {formatCurrency(summary.totalReceived)}
+                  </p>
                 </div>
-                <span className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                  Recebido
-                </span>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                  <Wallet className="h-5 w-5 text-emerald-400" />
+                </div>
               </div>
-              <p className="text-sm text-neutral-400 mb-1">Total recebido</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {formatCurrency(summary.totalReceived)}
-              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-neutral-900 border-neutral-800 rounded-2xl shadow-xl shadow-black/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-                  <Wallet className="h-6 w-6 text-amber-400" />
+          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Total em Aberto
+                  </p>
+                  <p className="mt-2 break-words text-2xl font-bold text-amber-400">
+                    {formatCurrency(summary.totalOpen)}
+                  </p>
                 </div>
-                <span className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                  Em aberto
-                </span>
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                  <DollarSign className="h-5 w-5 text-amber-400" />
+                </div>
               </div>
-              <p className="text-sm text-neutral-400 mb-1">Total pendente</p>
-              <p className="text-2xl font-semibold text-amber-400">
-                {formatCurrency(summary.totalOpen)}
-              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-neutral-900 border-neutral-800 rounded-2xl shadow-xl shadow-black/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-blue-400" />
+          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Quantidade
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-neutral-50">
+                    {summary.totalCount}
+                  </p>
                 </div>
-                <span className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                  Volume
-                </span>
+                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
+                  <BarChart3 className="h-5 w-5 text-blue-400" />
+                </div>
               </div>
-              <p className="text-sm text-neutral-400 mb-1">Total de parcelas</p>
-              <p className="text-2xl font-semibold text-neutral-50">
-                {summary.totalCount}
-              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-neutral-900 border-neutral-800 rounded-2xl shadow-xl shadow-black/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-rose-500/10 flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-rose-400" />
+          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Em Atraso
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-rose-400">
+                    {summary.overdueCount}
+                  </p>
                 </div>
-                <span className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                  Risco
-                </span>
+                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3">
+                  <AlertTriangle className="h-5 w-5 text-rose-400" />
+                </div>
               </div>
-              <p className="text-sm text-neutral-400 mb-1">Parcelas atrasadas</p>
-              <p className="text-2xl font-semibold text-rose-400">
-                {summary.overdueCount}
-              </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl shadow-black/20">
-          <div className="px-6 py-5 border-b border-neutral-800 flex items-center justify-between">
-            <div>
-              <h2 className="font-heading text-xl font-semibold text-neutral-50">
-                Resumo Mensal
-              </h2>
-              <p className="text-sm text-neutral-400 mt-1">
-                Consolidado financeiro com base no período filtrado.
-              </p>
-            </div>
+        <div className="mb-6 rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+          <p className="text-sm text-neutral-400">
+            Filtro atual: <span className="font-medium text-neutral-200">{getPeriodDisplayLabel()}</span>
+          </p>
+        </div>
+
+        <div className="mb-8 rounded-3xl border border-neutral-800 bg-neutral-900">
+          <div className="border-b border-neutral-800 p-5">
+            <h2 className="text-lg font-semibold text-neutral-50">Detalhamento das parcelas</h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              Visualização consolidada das parcelas filtradas
+            </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full min-w-[900px]">
               <thead>
                 <tr className="border-b border-neutral-800">
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Cliente
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Parcela
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Vencimento
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Atualizado
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Atraso
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInstallments.map((item, index) => (
+                  <tr
+                    key={`${item.loan_id}-${item.number}-${index}`}
+                    className="border-b border-neutral-800/50 transition-colors hover:bg-neutral-800/30"
+                  >
+                    <td className="px-6 py-4 text-neutral-50">{item.customer_name || '-'}</td>
+                    <td className="px-6 py-4 text-neutral-300">#{item.number}</td>
+                    <td className="px-6 py-4 text-neutral-300">{getStatusLabel(item.status)}</td>
+                    <td className="px-6 py-4 text-neutral-300">{formatDate(item.due_date)}</td>
+                    <td className="px-6 py-4 font-mono font-semibold text-emerald-400">
+                      {formatCurrency(item.updated_amount || 0)}
+                    </td>
+                    <td className="px-6 py-4 text-neutral-300">
+                      {item.days_overdue ? `${item.days_overdue} dias` : '-'}
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredInstallments.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-10 text-center text-neutral-500">
+                      Nenhum dado encontrado para o período selecionado
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 p-4 lg:hidden">
+            {filteredInstallments.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 text-center text-neutral-500">
+                Nenhum dado encontrado para o período selecionado
+              </div>
+            ) : (
+              filteredInstallments.map((item, index) => (
+                <div
+                  key={`${item.loan_id}-${item.number}-${index}`}
+                  className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-neutral-50">
+                        {item.customer_name || '-'}
+                      </p>
+                      <p className="text-sm text-neutral-500">Parcela #{item.number}</p>
+                    </div>
+                    <span className="rounded-full border border-neutral-700 px-3 py-1 text-xs text-neutral-300">
+                      {getStatusLabel(item.status)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-neutral-500">Vencimento</p>
+                      <p className="mt-1 text-neutral-200">{formatDate(item.due_date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-neutral-500">Atualizado</p>
+                      <p className="mt-1 font-mono font-semibold text-emerald-400">
+                        {formatCurrency(item.updated_amount || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-neutral-500">Atraso</p>
+                      <p className="mt-1 text-neutral-200">
+                        {item.days_overdue ? `${item.days_overdue} dias` : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-neutral-500">Pagamento</p>
+                      <p className="mt-1 text-neutral-200">{formatDate(item.paid_at)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-neutral-800 bg-neutral-900">
+          <div className="border-b border-neutral-800 p-5">
+            <h2 className="text-lg font-semibold text-neutral-50">Resumo mensal</h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              Consolidado financeiro do período selecionado
+            </p>
+          </div>
+
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full min-w-[720px]">
+              <thead>
+                <tr className="border-b border-neutral-800">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Mês
                   </th>
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Total Recebido
                   </th>
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Total em Aberto
                   </th>
-                  <th className="text-left px-6 py-4 text-xs uppercase tracking-wider text-neutral-500 font-semibold">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                     Quantidade
                   </th>
                 </tr>
@@ -716,20 +837,18 @@ const Reports = () => {
                 {monthlySummary.map((item) => (
                   <tr
                     key={item.month}
-                    className="border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-colors"
+                    className="border-b border-neutral-800/50 transition-colors hover:bg-neutral-800/30"
                   >
-                    <td className="px-6 py-4 text-neutral-50 font-medium capitalize">
+                    <td className="px-6 py-4 font-medium capitalize text-neutral-50">
                       {formatMonthLabel(item.month)}
                     </td>
-                    <td className="px-6 py-4 text-emerald-400 font-mono font-semibold">
+                    <td className="px-6 py-4 font-mono font-semibold text-emerald-400">
                       {formatCurrency(item.received)}
                     </td>
-                    <td className="px-6 py-4 text-amber-400 font-mono font-semibold">
+                    <td className="px-6 py-4 font-mono font-semibold text-amber-400">
                       {formatCurrency(item.open)}
                     </td>
-                    <td className="px-6 py-4 text-neutral-300">
-                      {item.count}
-                    </td>
+                    <td className="px-6 py-4 text-neutral-300">{item.count}</td>
                   </tr>
                 ))}
 
@@ -743,9 +862,49 @@ const Reports = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="grid grid-cols-1 gap-4 p-4 lg:hidden">
+            {monthlySummary.length === 0 ? (
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 text-center text-neutral-500">
+                Nenhum dado encontrado para o período selecionado
+              </div>
+            ) : (
+              monthlySummary.map((item) => (
+                <div
+                  key={item.month}
+                  className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4"
+                >
+                  <div className="mb-3">
+                    <p className="font-semibold capitalize text-neutral-50">
+                      {formatMonthLabel(item.month)}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div>
+                      <p className="text-sm text-neutral-500">Recebido</p>
+                      <p className="mt-1 font-mono font-semibold text-emerald-400">
+                        {formatCurrency(item.received)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-neutral-500">Em aberto</p>
+                      <p className="mt-1 font-mono font-semibold text-amber-400">
+                        {formatCurrency(item.open)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-neutral-500">Quantidade</p>
+                      <p className="mt-1 text-neutral-200">{item.count}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 
