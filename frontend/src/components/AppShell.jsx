@@ -47,6 +47,22 @@ const AppShell = ({
           </div>
         </header>
 
+        {/* Header desktop */}
+        <header className="hidden border-b border-neutral-800/80 bg-neutral-950/70 backdrop-blur-xl lg:block">
+          <div className="flex items-center justify-between gap-6 px-8 py-6">
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl font-bold tracking-tight text-neutral-50">
+                {title}
+              </h1>
+              {headerSubtitle ? (
+                <p className="mt-1 text-sm text-neutral-400">{headerSubtitle}</p>
+              ) : null}
+            </div>
+
+            {rightAction ? <div className="shrink-0">{rightAction}</div> : null}
+          </div>
+        </header>
+
         <main className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           {children}
         </main>

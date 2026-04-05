@@ -38,6 +38,7 @@ import {
   Search,
   X,
   User,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -324,7 +325,7 @@ const Loans = () => {
           <>
             <div className="hidden overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 lg:block">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px]">
+                <table className="w-full min-w-[980px]">
                   <thead>
                     <tr className="border-b border-neutral-800">
                       <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
@@ -379,17 +380,31 @@ const Loans = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => navigate(`/loans/${loan.id}`)}
+                              className="rounded-2xl text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+                              data-testid={`contract-loan-${loan.id}`}
+                              title="Contrato"
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/loans/${loan.id}`)}
                               className="rounded-2xl text-neutral-400 hover:bg-neutral-800 hover:text-neutral-50"
                               data-testid={`view-loan-${loan.id}`}
+                              title="Visualizar"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
+
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(loan.id)}
                               className="rounded-2xl text-neutral-400 hover:bg-rose-500/10 hover:text-rose-500"
                               data-testid={`delete-loan-${loan.id}`}
+                              title="Excluir"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -460,12 +475,23 @@ const Loans = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-4 grid grid-cols-3 gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate(`/loans/${loan.id}`)}
-                      className="flex-1 rounded-2xl text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                      className="rounded-2xl text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+                      data-testid={`contract-loan-${loan.id}`}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Contrato
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/loans/${loan.id}`)}
+                      className="rounded-2xl text-neutral-300 hover:bg-neutral-800 hover:text-white"
                       data-testid={`view-loan-${loan.id}`}
                     >
                       <Eye className="mr-2 h-4 w-4" />

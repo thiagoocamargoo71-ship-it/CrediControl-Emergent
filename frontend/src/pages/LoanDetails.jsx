@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import AppShell from '../components/AppShell';
@@ -14,6 +15,7 @@ import {
   Clock,
   AlertTriangle,
   CreditCard,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -109,6 +111,203 @@ const LoanDetails = () => {
     return icons[status] || icons.pending;
   };
 
+  const handleGenerateContract = () => {
+    if (!loan) {
+      toast.error('Dados do empréstimo não encontrados');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      const customerName = loan.customer_name || 'Cliente';
+      const contractDate = loan.start_date ? formatDate(loan.start_date) : formatDate(new Date());
+      const principalAmount = Number(loan.amount || 0);
+      const totalAmount = Number(loan.total_amount || 0);
+      const interestRate = Number(loan.interest_rate || 0);
+      const numberOfInstallments = Number(loan.number_of_installments || installments.length || 1);
+      const totalInterest = totalAmount - principalAmount;
+
+      const installmentValue =
+        installments.length > 0
+          ? Number(installments[0]?.amount || installments[0]?.updated_amount || 0)
+          : totalAmount / numberOfInstallments;
+
+      const addParagraph = (text, x, y, maxWidth, lineHeight = 6) => {
+        const lines = doc.splitTextToSize(text, maxWidth);
+        doc.text(lines, x, y);
+        return y + lines.length * lineHeight;
+      };
+
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 30, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text('CrediControl', 14, 14);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(203, 213, 225);
+      doc.text('Contrato Simplificado de Empréstimo Particular', 14, 21);
+
+      doc.setFillColor(79, 70, 229);
+      doc.roundedRect(pageWidth - 58, 8, 44, 10, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Contrato PDF', pageWidth - 49, 14.5);
+
+      let y = 42;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text('Resumo da contratação', 14, y);
+
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Cliente: ${customerName}`, 14, y);
+      y += 5;
+      doc.text(`Data da contratação: ${contractDate}`, 14, y);
+
+      y += 10;
+
+      const cardX = 14;
+      const cardY = y;
+      const cardW = pageWidth - 28;
+      const cardH = 42;
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Valor contratado', cardX + 5, cardY + 8);
+      doc.text('Juros aplicado', cardX + 55, cardY + 8);
+      doc.text('Parcelas', cardX + 95, cardY + 8);
+      doc.text('Valor por parcela', cardX + 125, cardY + 8);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text(formatCurrency(principalAmount), cardX + 5, cardY + 17);
+      doc.text(`${interestRate}%`, cardX + 55, cardY + 17);
+      doc.text(String(numberOfInstallments), cardX + 95, cardY + 17);
+      doc.text(formatCurrency(installmentValue), cardX + 125, cardY + 17);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Juros total', cardX + 5, cardY + 31);
+      doc.text('Valor final', cardX + 55, cardY + 31);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(15, 23, 42);
+      doc.text(formatCurrency(totalInterest), cardX + 5, cardY + 39);
+      doc.setTextColor(5, 150, 105);
+      doc.text(formatCurrency(totalAmount), cardX + 55, cardY + 39);
+
+      y += 56;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+
+      y = addParagraph(
+        'O presente contrato tem por objeto a concessão de empréstimo financeiro ao CONTRATADO, no valor e nas condições descritas neste documento, para fins de registro, ciência e compromisso de pagamento.',
+        14,
+        y,
+        180
+      );
+
+      y += 6;
+
+      y = addParagraph(
+        `O presente documento registra que ${customerName} contratou junto ao CrediControl, em ${contractDate}, um empréstimo no valor de ${formatCurrency(
+          principalAmount
+        )}, com aplicação de juros de ${interestRate}%, totalizando ${formatCurrency(
+          totalAmount
+        )}, a ser pago em ${numberOfInstallments} parcelas de ${formatCurrency(
+          installmentValue
+        )}.`,
+        14,
+        y,
+        180
+      );
+
+      y += 6;
+
+      y = addParagraph(
+        'O cliente declara estar ciente e de acordo com as condições aqui registradas.',
+        14,
+        y,
+        180
+      );
+
+      y += 6;
+
+      y = addParagraph(
+        'Em caso de atraso no pagamento de qualquer parcela, o cliente deverá ser contatado para ciência do atraso e para esclarecimento de eventuais dúvidas relacionadas ao pagamento pendente.',
+        14,
+        y,
+        180
+      );
+
+      y += 6;
+
+      y = addParagraph(
+        'Este contrato tem caráter de registro formal da operação realizada entre as partes, servindo como comprovante das condições acordadas no momento da contratação.',
+        14,
+        y,
+        180
+      );
+
+      y += 18;
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, y, pageWidth - 14, y);
+      y += 12;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`CREDICONTROL - ${contractDate}`, 14, y);
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text('CrediControl • Contrato de Empréstimo', 14, pageHeight - 7);
+      doc.text('Página 1 de 1', pageWidth - 32, pageHeight - 7);
+
+      const safeCustomerName = customerName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase();
+
+      doc.save(`contrato-${safeCustomerName || 'cliente'}.pdf`);
+      toast.success('Contrato gerado com sucesso!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao gerar contrato');
+    }
+  };
+
   const paidCount = installments.filter((i) => i.status === 'paid').length;
   const progress = installments.length > 0 ? (paidCount / installments.length) * 100 : 0;
   const totalPaid = installments
@@ -119,15 +318,26 @@ const LoanDetails = () => {
     .reduce((acc, i) => acc + i.updated_amount, 0);
 
   const rightAction = (
-    <Button
-      variant="ghost"
-      onClick={() => navigate('/loans')}
-      className="hidden h-11 rounded-2xl border border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white sm:inline-flex"
-      data-testid="back-to-loans"
-    >
-      <ArrowLeft className="mr-2 h-4 w-4" />
-      Voltar
-    </Button>
+    <div className="hidden sm:flex items-center gap-2">
+      <Button
+        onClick={handleGenerateContract}
+        className="h-11 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:opacity-95"
+        data-testid="generate-contract-button"
+      >
+        <FileText className="mr-2 h-4 w-4" />
+        Emitir Contrato
+      </Button>
+
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/loans')}
+        className="h-11 rounded-2xl border border-neutral-800 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+        data-testid="back-to-loans"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+    </div>
   );
 
   if (loading) {
@@ -151,15 +361,26 @@ const LoanDetails = () => {
       rightAction={rightAction}
     >
       <div data-testid="loan-details-page">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/loans')}
-          className="mb-4 rounded-2xl text-neutral-400 hover:bg-neutral-900 hover:text-neutral-50 sm:hidden"
-          data-testid="back-to-loans-mobile"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar para Empréstimos
-        </Button>
+        <div className="mb-4 flex flex-col gap-3 sm:hidden">
+          <Button
+            onClick={handleGenerateContract}
+            className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:opacity-95"
+            data-testid="generate-contract-button-mobile"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Emitir Contrato
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/loans')}
+            className="rounded-2xl text-neutral-400 hover:bg-neutral-900 hover:text-neutral-50"
+            data-testid="back-to-loans-mobile"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para Empréstimos
+          </Button>
+        </div>
 
         <div className="mb-6 hidden lg:block">
           <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">

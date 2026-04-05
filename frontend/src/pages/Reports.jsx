@@ -497,33 +497,11 @@ const Reports = () => {
       : 'bg-neutral-900 text-neutral-300 border border-neutral-700 hover:bg-neutral-800 hover:text-white';
   };
 
-  const rightAction = (
-    <div className="hidden sm:flex items-center gap-2">
-      <Button
-        onClick={handleExportExcel}
-        disabled={!filteredInstallments.length}
-        className="h-11 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
-      >
-        <FileSpreadsheet className="mr-2 h-4 w-4" />
-        Excel
-      </Button>
-      <Button
-        onClick={handleExportPDF}
-        disabled={!filteredInstallments.length}
-        className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
-      >
-        <FileText className="mr-2 h-4 w-4" />
-        PDF
-      </Button>
-    </div>
-  );
-
   if (loading) {
     return (
       <AppShell
         title="Relatórios"
         subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
-        rightAction={rightAction}
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -536,24 +514,47 @@ const Reports = () => {
     <AppShell
       title="Relatórios"
       subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
-      rightAction={rightAction}
     >
-      <div data-testid="reports-page">
-        <div className="mb-8 hidden lg:block">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
-            <BarChart3 className="h-4 w-4" />
-            Painel de Relatórios
-          </div>
+      <div data-testid="reports-page" className="space-y-8">
+        <div className="rounded-3xl border border-neutral-800 bg-neutral-950/80 p-4 sm:p-5 lg:p-6">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="min-w-0">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
+                <BarChart3 className="h-4 w-4" />
+                Painel de Relatórios
+              </div>
 
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-            Relatórios
-          </h1>
-          <p className="mt-1 text-neutral-400">
-            Visualize o desempenho financeiro e acompanhe sua operação por período.
-          </p>
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
+                Relatórios
+              </h1>
+              <p className="mt-1 text-sm text-neutral-400 sm:text-base">
+                Visualize o desempenho financeiro e acompanhe sua operação por período.
+              </p>
+            </div>
+
+            <div className="flex w-full flex-col gap-2 sm:flex-row xl:w-auto">
+              <Button
+                onClick={handleExportExcel}
+                disabled={!filteredInstallments.length}
+                className="h-11 w-full rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Baixar Excel
+              </Button>
+
+              <Button
+                onClick={handleExportPDF}
+                disabled={!filteredInstallments.length}
+                className="h-11 w-full rounded-2xl bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Baixar PDF
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-8 flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={() => setPeriod('all')}
@@ -593,28 +594,9 @@ const Reports = () => {
               />
             )}
           </div>
-
-          <div className="flex flex-col gap-2 sm:hidden">
-            <Button
-              onClick={handleExportExcel}
-              disabled={!filteredInstallments.length}
-              className="h-11 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Exportar Excel
-            </Button>
-            <Button
-              onClick={handleExportPDF}
-              disabled={!filteredInstallments.length}
-              className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-          </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
             <CardContent className="p-5">
               <div className="flex items-start justify-between gap-3">
@@ -688,13 +670,14 @@ const Reports = () => {
           </Card>
         </div>
 
-        <div className="mb-6 rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
+        <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
           <p className="text-sm text-neutral-400">
-            Filtro atual: <span className="font-medium text-neutral-200">{getPeriodDisplayLabel()}</span>
+            Filtro atual:{' '}
+            <span className="font-medium text-neutral-200">{getPeriodDisplayLabel()}</span>
           </p>
         </div>
 
-        <div className="mb-8 rounded-3xl border border-neutral-800 bg-neutral-900">
+        <div className="rounded-3xl border border-neutral-800 bg-neutral-900">
           <div className="border-b border-neutral-800 p-5">
             <h2 className="text-lg font-semibold text-neutral-50">Detalhamento das parcelas</h2>
             <p className="mt-1 text-sm text-neutral-500">
