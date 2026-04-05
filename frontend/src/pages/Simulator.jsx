@@ -90,11 +90,7 @@ export default function Simulator() {
       subtitle="Simule seus empréstimos com cálculo automático"
     >
       <div>
-        <div className="mb-6 hidden lg:block">
-          <h1 className="text-3xl font-bold text-neutral-50">Simulador</h1>
-          <p className="mt-1 text-neutral-400">Simule seus empréstimos</p>
-        </div>
-
+        
         <div className="mx-auto max-w-5xl">
           <div className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/10">
             <div className="border-b border-neutral-800 bg-gradient-to-r from-blue-600/10 via-indigo-500/5 to-transparent p-5 sm:p-6">

@@ -184,15 +184,7 @@ const Settings = () => {
       subtitle="Gerencie sua conta e preferências"
     >
       <div data-testid="settings-page">
-        <div className="mb-6 hidden lg:block">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-            Configurações
-          </h1>
-          <p className="mt-1 text-neutral-400">
-            Gerencie sua conta e preferências
-          </p>
-        </div>
-
+        
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           {/* Dados da Conta */}
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">

@@ -367,40 +367,20 @@ const Dashboard = () => {
     <AppShell
       title="Resumo Inteligente"
       subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+     
       rightAction={
-        <Button
-          onClick={() => fetchDashboardData(true)}
-          variant="outline"
-          className="hidden h-11 border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800 sm:inline-flex lg:hidden"
-        >
-          Atualizar
-        </Button>
-      }
+  <Button
+    onClick={() => fetchDashboardData(true)}
+    disabled={refreshing}
+    variant="outline"
+    className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+  >
+    {refreshing ? 'Atualizando...' : 'Atualizar'}
+  </Button>
+}
     >
       <div data-testid="dashboard-page">
-        {/* Header desktop */}
-        <div className="mb-6 hidden items-start justify-between gap-4 lg:flex">
-          <div>
-            <div className="mb-2 flex items-center gap-3">
-              <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-                Resumo Inteligente
-              </h1>
-              {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}
-            </div>
-            <p className="text-neutral-400">
-              Sua leitura operacional da carteira, do risco e das oportunidades.
-            </p>
-          </div>
-
-          <Button
-            onClick={() => fetchDashboardData(true)}
-            variant="outline"
-            className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
-          >
-            Atualizar agora
-          </Button>
-        </div>
-
+        
         {/* Header mobile status */}
         <div className="mb-4 lg:hidden">
           {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}

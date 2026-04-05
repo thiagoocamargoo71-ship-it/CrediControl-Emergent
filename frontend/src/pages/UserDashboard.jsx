@@ -112,13 +112,7 @@ const UserDashboard = () => {
       subtitle="Visão geral dos seus empréstimos"
     >
       <div data-testid="user-dashboard">
-        <div className="mb-6 hidden lg:block">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-neutral-400">Visão geral dos seus empréstimos</p>
-        </div>
-
+        
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {statCards.map((card, index) => {
             const Icon = card.icon;

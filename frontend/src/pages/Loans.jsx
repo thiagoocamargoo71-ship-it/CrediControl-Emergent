@@ -239,24 +239,7 @@ const Loans = () => {
       rightAction={rightAction}
     >
       <div data-testid="loans-page">
-        <div className="mb-6 hidden items-center justify-between gap-4 lg:flex">
-          <div>
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-              Empréstimos
-            </h1>
-            <p className="mt-1 text-neutral-400">Gerencie seus empréstimos</p>
-          </div>
-
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            disabled={customers.length === 0}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Empréstimo
-          </Button>
-        </div>
-
+        
         <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative max-w-xl flex-1">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />

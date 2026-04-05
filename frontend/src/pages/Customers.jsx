@@ -257,23 +257,7 @@ const Customers = () => {
       rightAction={rightAction}
     >
       <div data-testid="customers-page">
-        <div className="mb-6 hidden items-center justify-between gap-4 lg:flex">
-          <div>
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-              Clientes
-            </h1>
-            <p className="mt-1 text-neutral-400">Gerencie seus clientes</p>
-          </div>
-
-          <Button
-            onClick={() => openModal()}
-            className="bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Cliente
-          </Button>
-        </div>
-
+        
         <div className="relative mb-6 max-w-xl">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
           <Input

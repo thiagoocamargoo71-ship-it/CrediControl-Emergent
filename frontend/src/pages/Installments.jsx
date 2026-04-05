@@ -184,15 +184,7 @@ const Installments = () => {
       rightAction={rightAction}
     >
       <div data-testid="installments-page">
-        <div className="mb-6 hidden lg:block">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-neutral-50">
-            Parcelas
-          </h1>
-          <p className="mt-1 text-neutral-400">
-            Gerencie todas as parcelas dos seus empréstimos
-          </p>
-        </div>
-
+        
         {stats && (
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4">
