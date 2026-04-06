@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
-import { FileText } from 'lucide-react';
+import { Receipt } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import {
@@ -167,9 +167,11 @@ const Installments = () => {
   if (loading) {
     return (
       <AppShell
-        title="Parcelas"
-        subtitle="Gerencie todas as parcelas dos seus empréstimos"
+        title="Gerencie todas as parcelas dos seus empréstimos"
         rightAction={rightAction}
+    headerVariant="premium"
+    headerIcon={Receipt}
+    headerBadge="Controle de parcelas"
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -180,11 +182,10 @@ const Installments = () => {
 
 return (
   <AppShell
-    title="Parcelas"
-    subtitle="Gerencie todas as parcelas dos seus empréstimos"
+    title="Gerencie todas as parcelas dos seus empréstimos"
     rightAction={rightAction}
     headerVariant="premium"
-    headerIcon={FileText}
+    headerIcon={Receipt}
     headerBadge="Controle de parcelas"
   >
     <div data-testid="installments-page" className="space-y-8 lg:space-y-10">

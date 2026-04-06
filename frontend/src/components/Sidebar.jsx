@@ -19,26 +19,41 @@ import { Button } from '../components/ui/button';
 const SidebarContent = ({ links, location, onNavigate, user, handleLogout }) => {
   return (
     <>
-      <div className="relative shrink-0 border-b border-neutral-800/90 px-4 py-4 sm:px-5 sm:py-5 bg-neutral-950/85 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <div className="relative h-11 w-11 shrink-0 rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-600/20 via-blue-500/10 to-indigo-500/10 flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.12)]">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent" />
-            <span className="relative text-blue-400 font-bold text-sm tracking-wide">CC</span>
-          </div>
+      <div className="relative shrink-0 border-b border-white/6 px-4 py-4 sm:px-5 sm:py-5">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent)]" />
+        <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-300/20 to-transparent" />
 
-          <div className="min-w-0">
-            <h1 className="font-heading text-xl font-bold text-neutral-50 tracking-tight leading-none">
-              Credi<span className="text-blue-500">Control</span>
-            </h1>
-            <p className="mt-1 truncate text-[10px] uppercase tracking-[0.22em] text-neutral-500">
-              {user?.role === 'admin' ? 'Painel Admin' : 'Painel do Usuário'}
-            </p>
+        <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.018))] px-4 py-4 shadow-[0_16px_50px_rgba(0,0,0,0.30)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-8 bottom-0 h-20 w-20 rounded-full bg-blue-600/10 blur-3xl" />
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/18 bg-gradient-to-br from-sky-400/18 via-blue-500/14 to-indigo-600/10 shadow-[0_0_40px_rgba(59,130,246,0.18)]">
+              <div className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,rgba(255,255,255,0.09),transparent_55%)]" />
+              <span className="relative text-sm font-bold tracking-[0.22em] text-sky-300">
+                CC
+              </span>
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="font-heading text-[1.22rem] font-semibold leading-none tracking-tight text-white">
+                Credi<span className="text-sky-400">Control</span>
+              </h1>
+              <p className="mt-1.5 truncate text-[10px] font-medium uppercase tracking-[0.24em] text-neutral-500">
+              
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <nav className="relative flex-1 min-h-0 overflow-y-auto px-3 py-4 sidebar-scroll">
-        <ul className="space-y-2 pb-3">
+        <div className="mb-3 px-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-600">
+
+          </p>
+        </div>
+
+        <ul className="space-y-2 pb-4">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive =
@@ -50,28 +65,25 @@ const SidebarContent = ({ links, location, onNavigate, user, handleLogout }) => 
                 <Link
                   to={link.path}
                   onClick={onNavigate}
-                  className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-300 ${
+                  className={`group relative flex items-center gap-3 overflow-hidden rounded-[22px] px-3 py-3 transition-all duration-300 ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600/90 to-indigo-600/90 text-white border border-blue-400/20 shadow-[0_10px_30px_rgba(37,99,235,0.18)]'
-                      : 'text-neutral-400 border border-transparent hover:border-neutral-800 hover:bg-neutral-900/85 hover:text-neutral-50'
+                      ? 'border border-sky-400/18 bg-[linear-gradient(135deg,rgba(79,140,255,0.96),rgba(58,111,232,0.96))] text-white shadow-[0_14px_34px_rgba(59,130,246,0.24)]'
+                      : 'border border-transparent bg-transparent text-neutral-400 hover:border-white/6 hover:bg-white/[0.03] hover:text-neutral-50'
                   }`}
                   data-testid={`nav-${link.label.toLowerCase()}`}
                 >
                   {isActive && (
-                    <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_38%,transparent)]" />
+                    <>
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_40%,transparent)]" />
+                      <div className="pointer-events-none absolute left-0 top-1/2 h-9 w-1 -translate-y-1/2 rounded-r-full bg-white/80" />
+                    </>
                   )}
 
                   <div
-                    className={`absolute left-0 top-1/2 h-8 -translate-y-1/2 rounded-r-full transition-all duration-300 ${
-                      isActive ? 'w-1 bg-white/80' : 'w-0 bg-transparent'
-                    }`}
-                  />
-
-                  <div
-                    className={`relative h-10 w-10 shrink-0 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                    className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 ${
                       isActive
-                        ? 'bg-white/10 border-white/10 text-white'
-                        : 'bg-neutral-900 border-neutral-800 text-neutral-500 group-hover:bg-neutral-800 group-hover:border-neutral-700 group-hover:text-neutral-200'
+                        ? 'border-white/10 bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]'
+                        : 'border-neutral-800 bg-neutral-900/90 text-neutral-500 group-hover:border-neutral-700 group-hover:bg-neutral-800/90 group-hover:text-neutral-200'
                     }`}
                   >
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
@@ -82,11 +94,29 @@ const SidebarContent = ({ links, location, onNavigate, user, handleLogout }) => 
                       {link.label}
                     </span>
 
-                    {!isActive && link.path === '/home' && (
-                      <span className="mt-0.5 block text-[10px] uppercase tracking-[0.18em] text-neutral-600 group-hover:text-neutral-500">
-                        Tela principal
-                      </span>
-                    )}
+                    <span
+                      className={`mt-0.5 block truncate text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 ${
+                        isActive
+                          ? 'text-white/70'
+                          : 'text-neutral-600 group-hover:text-neutral-500'
+                      }`}
+                    >
+                      {link.path === '/home'
+                        ? 'Tela principal'
+                        : link.path === '/dashboard' || link.path === '/admin'
+                        ? 'Visão geral'
+                        : link.path === '/customers' || link.path === '/admin/users'
+                        ? 'Gestão'
+                        : link.path === '/loans'
+                        ? 'Operações'
+                        : link.path === '/installments'
+                        ? 'Controle'
+                        : link.path === '/reports'
+                        ? 'Análises'
+                        : link.path === '/simulator'
+                        ? 'Cálculos'
+                        : 'Preferências'}
+                    </span>
                   </div>
 
                   <ChevronRight
@@ -103,42 +133,35 @@ const SidebarContent = ({ links, location, onNavigate, user, handleLogout }) => 
         </ul>
       </nav>
 
-      <div className="relative shrink-0 border-t border-neutral-800/90 p-4 bg-neutral-950/90 backdrop-blur-xl">
-        <div className="rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-900 to-neutral-950 px-4 py-3 shadow-inner">
-          <p className="truncate text-sm font-medium text-neutral-100">
-            {user?.name || 'Usuário'}
-          </p>
-          <p className="mt-1 truncate text-xs text-neutral-500">
-            {user?.email || 'email@exemplo.com'}
-          </p>
+      
+
+        <div className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-2 shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+          <Button
+            onClick={handleLogout}
+            className="
+              relative h-11 w-full gap-3 rounded-[20px] px-4
+
+              border border-sky-400/20
+              bg-gradient-to-b from-[#4F8CFF] to-[#3A6FE8]
+              text-white font-medium tracking-tight
+
+              shadow-[0_10px_28px_rgba(79,140,255,0.24)]
+              transition-all duration-200
+
+              hover:-translate-y-[1px]
+              hover:from-[#5A98FF] hover:to-[#4A7CF0]
+              hover:shadow-[0_14px_34px_rgba(79,140,255,0.34)]
+
+              active:translate-y-[0px]
+              active:shadow-[0_6px_16px_rgba(79,140,255,0.22)]
+            "
+            data-testid="logout-button"
+          >
+            <div className="pointer-events-none absolute inset-0 rounded-[20px] bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_46%)]" />
+            <LogOut className="relative h-4 w-4 opacity-90" strokeWidth={1.9} />
+            <span className="relative">Sair</span>
+          </Button>
         </div>
-
-        <Button
-  onClick={handleLogout}
-  className="
-    relative mt-2 h-9 w-50 gap-3 rounded-2xl px-4
-
-    bg-gradient-to-b from-[#FB7185]/80 to-[#E11D48]/80
-    text-white font-medium tracking-tight
-
-    border border-white/10
-    shadow-[0_4px_14px_rgba(244,63,94,0.18)]
-
-    transition-all duration-200
-
-    hover:-translate-y-[1px]
-    hover:from-[#FDA4AF]/90 hover:to-[#F43F5E]/90
-    hover:shadow-[0_8px_22px_rgba(244,63,94,0.25)]
-
-    active:translate-y-[0px]
-    active:shadow-[0_3px_10px_rgba(244,63,94,0.18)]
-  "
-  data-testid="logout-button"
->
-  <LogOut className="h-4 w-4 opacity-85" strokeWidth={1.8} />
-  Sair
-</Button>
-      </div>
     </>
   );
 };
@@ -205,11 +228,12 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
       </style>
 
       {/* Desktop */}
-      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 flex-col overflow-hidden border-r border-neutral-800 bg-black/95 backdrop-blur-xl">
+      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-[276px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.96),rgba(6,6,8,0.98))] backdrop-blur-2xl">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-16 -top-24 h-52 w-52 rounded-full bg-blue-600/10 blur-3xl" />
-          <div className="absolute top-1/3 -right-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent_18%,transparent_82%,rgba(255,255,255,0.02))]" />
+          <div className="absolute -left-20 -top-16 h-56 w-56 rounded-full bg-sky-500/10 blur-[90px]" />
+          <div className="absolute top-[22%] -right-20 h-44 w-44 rounded-full bg-blue-600/10 blur-[90px]" />
+          <div className="absolute bottom-10 left-4 h-32 w-32 rounded-full bg-indigo-500/8 blur-[80px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_16%,transparent_84%,rgba(255,255,255,0.02))]" />
         </div>
 
         <SidebarContent
@@ -223,7 +247,7 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
 
       {/* Overlay mobile/tablet */}
       <div
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-all duration-300 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-black/65 backdrop-blur-sm transition-all duration-300 lg:hidden ${
           mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setMobileOpen(false)}
@@ -231,19 +255,20 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
 
       {/* Drawer mobile/tablet */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[88%] max-w-[340px] flex-col overflow-hidden border-r border-neutral-800 bg-black/95 backdrop-blur-2xl transition-transform duration-300 sm:w-[78%] md:max-w-[360px] lg:hidden ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-[88%] max-w-[360px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[78%] lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-10 top-0 h-40 w-40 rounded-full bg-blue-600/10 blur-3xl" />
-          <div className="absolute bottom-10 right-0 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="absolute -left-12 top-0 h-40 w-40 rounded-full bg-sky-500/10 blur-[80px]" />
+          <div className="absolute bottom-10 right-0 h-36 w-36 rounded-full bg-indigo-500/10 blur-[80px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_20%,transparent_84%,rgba(255,255,255,0.02))]" />
         </div>
 
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-900/80 text-neutral-200 transition-colors hover:bg-neutral-800"
+          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/8 bg-neutral-900/80 text-neutral-200 transition-all duration-200 hover:border-neutral-700 hover:bg-neutral-800"
         >
           <X className="h-5 w-5" />
         </button>

@@ -10,13 +10,9 @@ import {
   ArrowRight,
   Briefcase,
   CalendarClock,
-  CircleDollarSign,
-  CreditCard,
   Gauge,
   ShieldAlert,
   Sparkles,
-  TrendingUp,
-  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { buildDashboardHomeData } from '../utils/buildDashboardHomeData';
@@ -304,20 +300,14 @@ const Dashboard = () => {
   if (loading) {
     return (
       <AppShell
-        title="Resumo Inteligente"
-        subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+        title="Sua leitura operacional da carteira, do risco e das oportunidades."
+        headerVariant="premium"
+        headerIcon={Home}
+        headerBadge="Visão Estratégica"
       >
         <div className="animate-pulse space-y-5 sm:space-y-6">
           <div className="h-8 w-56 rounded-lg bg-neutral-900 sm:h-10 sm:w-72" />
           <div className="h-72 rounded-3xl border border-neutral-800 bg-neutral-900" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {[...Array(4)].map((_, index) => (
-              <div
-                key={index}
-                className="h-32 rounded-3xl border border-neutral-800 bg-neutral-900"
-              />
-            ))}
-          </div>
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
             <div className="h-80 rounded-3xl border border-neutral-800 bg-neutral-900 xl:col-span-2" />
             <div className="h-80 rounded-3xl border border-neutral-800 bg-neutral-900" />
@@ -330,8 +320,7 @@ const Dashboard = () => {
   if (!homeData || !executiveSummary || !statusMeta) {
     return (
       <AppShell
-        title="Resumo Inteligente"
-        subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+        title="Sua leitura operacional da carteira, do risco e das oportunidades."
       >
         <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 text-center sm:p-8 lg:p-10">
           <Briefcase className="mx-auto mb-4 h-12 w-12 text-neutral-600" />
@@ -364,39 +353,36 @@ const Dashboard = () => {
 
   const statusStyles = getStatusStyles(executiveSummary.status);
 
-return (
-  <AppShell
-    title="Resumo Inteligente"
-    subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
-    headerVariant="premium"
-    headerIcon={Home}
-    headerBadge="Visão estratégica"
-    rightAction={
-      <Button
-        onClick={() => fetchDashboardData(true)}
-        disabled={refreshing}
-        className="
-          relative h-11 rounded-2xl px-5
-          border border-sky-400/20
-          bg-gradient-to-b from-[#4F8CFF] to-[#3A6FE8]
-          text-white font-medium tracking-tight
-          shadow-[0_6px_18px_rgba(79,140,255,0.25)]
-          transition-transform transition-colors duration-200
-          hover:-translate-y-[1px]
-          hover:from-[#5A98FF] hover:to-[#4A7CF0]
-          hover:shadow-[0_10px_26px_rgba(79,140,255,0.35)]
-          active:translate-y-[0px]
-          active:shadow-[0_4px_12px_rgba(79,140,255,0.25)]
-          disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0
-        "
-      >
-        {refreshing ? 'Atualizando...' : 'Atualizar'}
-      </Button>
-    }
-  >
-    <div data-testid="dashboard-page" className="space-y-8 lg:space-y-10">
-        
-        {/* Header mobile status */}
+  return (
+    <AppShell
+      title="Sua leitura operacional da carteira, do risco e das oportunidades."
+      headerVariant="premium"
+      headerIcon={Home}
+      headerBadge="Visão Estratégica"
+      rightAction={
+        <Button
+          onClick={() => fetchDashboardData(true)}
+          disabled={refreshing}
+          className="
+            relative h-11 rounded-2xl px-5
+            border border-sky-400/20
+            bg-gradient-to-b from-[#4F8CFF] to-[#3A6FE8]
+            text-white font-medium tracking-tight
+            shadow-[0_6px_18px_rgba(79,140,255,0.25)]
+            transition-transform transition-colors duration-200
+            hover:-translate-y-[1px]
+            hover:from-[#5A98FF] hover:to-[#4A7CF0]
+            hover:shadow-[0_10px_26px_rgba(79,140,255,0.35)]
+            active:translate-y-[0px]
+            active:shadow-[0_4px_12px_rgba(79,140,255,0.25)]
+            disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0
+          "
+        >
+          {refreshing ? 'Atualizando...' : 'Atualizar'}
+        </Button>
+      }
+    >
+      <div data-testid="dashboard-page" className="space-y-8 lg:space-y-10">
         <div className="mb-4 lg:hidden">
           {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}
         </div>
@@ -517,72 +503,6 @@ return (
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 animate-fade-in">
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                  Total emprestado
-                </p>
-                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
-                  {formatCurrency(homeData.portfolio.totalLoaned)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
-                <CircleDollarSign className="h-5 w-5 text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                  Em aberto
-                </p>
-                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
-                  {formatCurrency(homeData.portfolio.totalOpenBalance)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                <CreditCard className="h-5 w-5 text-amber-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                  A receber em 7 dias
-                </p>
-                <p className="mt-2 break-words text-2xl font-bold text-neutral-50">
-                  {formatCurrency(homeData.cashflow.expectedNext7Days)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
-                <TrendingUp className="h-5 w-5 text-emerald-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                  Clientes ativos
-                </p>
-                <p className="mt-2 text-2xl font-bold text-neutral-50">
-                  {homeData.portfolio.activeCustomers}
-                </p>
-              </div>
-              <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3">
-                <Users className="h-5 w-5 text-violet-400" />
               </div>
             </div>
           </div>

@@ -17,7 +17,7 @@ import {
 import { toast } from 'sonner';
 
 const REMEMBER_EMAIL_KEY = 'credicontrol_remember_email';
-const REMEMBER_ENABLED_KEY = 'credicontrol_remember_enabled';
+const REMEMBER_EMAIL_ENABLED_KEY = 'credicontrol_remember_email_enabled';
 
 const LoginSkeleton = () => {
   return (
@@ -45,12 +45,11 @@ const LoginSkeleton = () => {
               <div className="h-12 animate-pulse rounded-2xl bg-white/5" />
             </div>
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="space-y-2 pt-1">
               <div className="h-4 w-28 animate-pulse rounded bg-white/5" />
-              <div className="h-4 w-20 animate-pulse rounded bg-white/5" />
+              <div className="h-4 w-32 animate-pulse rounded bg-white/5" />
             </div>
 
-            <div className="h-12 animate-pulse rounded-2xl bg-white/5" />
             <div className="h-12 animate-pulse rounded-2xl bg-white/5" />
           </div>
         </div>
@@ -84,9 +83,7 @@ const BrandMark = () => {
         <div className="text-[1.55rem] font-semibold leading-none tracking-tight text-white sm:text-[1.75rem]">
           Credi<span className="text-sky-400">Control</span>
         </div>
-        <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
-          Fintech operations
-        </div>
+        <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-neutral-500" />
       </div>
     </div>
   );
@@ -101,8 +98,12 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
       <Icon className="h-5 w-5 text-sky-300" />
     </div>
 
-    <h3 className="relative text-base font-semibold tracking-tight text-white">{title}</h3>
-    <p className="relative mt-2 text-sm leading-6 text-neutral-400">{description}</p>
+    <h3 className="relative text-base font-semibold tracking-tight text-white">
+      {title}
+    </h3>
+    <p className="relative mt-2 text-sm leading-6 text-neutral-400">
+      {description}
+    </p>
   </div>
 );
 
@@ -110,6 +111,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberUser, setRememberUser] = useState(false);
+  const [rememberSession, setRememberSession] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [bootLoading, setBootLoading] = useState(true);
@@ -119,10 +121,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const rememberedEnabled = localStorage.getItem(REMEMBER_ENABLED_KEY) === 'true';
+    const rememberedEmailEnabled =
+      localStorage.getItem(REMEMBER_EMAIL_ENABLED_KEY) === 'true';
     const rememberedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY) || '';
 
-    if (rememberedEnabled && rememberedEmail) {
+    if (rememberedEmailEnabled && rememberedEmail) {
       setRememberUser(true);
       setEmail(rememberedEmail);
     }
@@ -135,15 +138,14 @@ const Login = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const persistRememberUser = (currentEmail) => {
+    const persistRememberEmail = (currentEmail) => {
     if (rememberUser && currentEmail.trim()) {
-      localStorage.setItem(REMEMBER_ENABLED_KEY, 'true');
+      localStorage.setItem(REMEMBER_EMAIL_ENABLED_KEY, 'true');
       localStorage.setItem(REMEMBER_EMAIL_KEY, currentEmail.trim());
-      return;
+    } else {
+      localStorage.removeItem(REMEMBER_EMAIL_ENABLED_KEY);
+      localStorage.removeItem(REMEMBER_EMAIL_KEY);
     }
-
-    localStorage.removeItem(REMEMBER_ENABLED_KEY);
-    localStorage.removeItem(REMEMBER_EMAIL_KEY);
   };
 
   const handleSubmit = async (e) => {
@@ -151,12 +153,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      persistRememberUser(email);
+      persistRememberEmail(email);
+
       const user = await login(email, password);
+
       toast.success('Login realizado com sucesso!');
       navigate(user.role === 'admin' ? '/admin' : '/home');
     } catch (error) {
-      toast.error(formatApiErrorDetail(error.response?.data?.detail) || 'Erro ao fazer login');
+      toast.error(
+        formatApiErrorDetail(error.response?.data?.detail) || 'Erro ao fazer login'
+      );
     } finally {
       setLoading(false);
     }
@@ -245,7 +251,7 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex flex-col gap-2 pt-1">
                     <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-400">
                       <input
                         type="checkbox"
@@ -256,9 +262,15 @@ const Login = () => {
                       Lembrar usuário
                     </label>
 
-                    <span className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-500">
-                      Sessão protegida
-                    </span>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-400">
+                      <input
+                        type="checkbox"
+                        checked={rememberSession}
+                        onChange={(e) => setRememberSession(e.target.checked)}
+                        className="h-4 w-4 rounded border border-white/15 bg-black/30 text-sky-500 accent-sky-500"
+                      />
+                      Manter sessão ativa
+                    </label>
                   </div>
 
                   <Button
@@ -296,7 +308,7 @@ const Login = () => {
 
                 <div className="mt-6 rounded-2xl border border-white/6 bg-black/20 px-4 py-3">
                   <p className="text-center text-sm text-neutral-500">
-                    Acesso liberado pelo administrador da operação.
+                    Caso esqueça a senha, entre em contato com o Administrador.
                   </p>
                 </div>
               </div>

@@ -526,11 +526,11 @@ const Reports = () => {
   if (loading) {
     return (
       <AppShell
-        title="Relatórios"
-        subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
+        title="Visualize o desempenho financeiro e acompanhe sua operação por período."
         rightAction={rightAction}
         headerVariant="premium"
         headerIcon={BarChart3}
+        headerBadge="Análise por período"
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -541,13 +541,14 @@ const Reports = () => {
 
   return (
     <AppShell
-      title="Relatórios"
-      subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
+      title="Visualize o desempenho financeiro e acompanhe sua operação por período."
       rightAction={rightAction}
       headerVariant="premium"
       headerIcon={BarChart3}
+      headerBadge="Análise por período"
     >
       <div data-testid="reports-page" className="space-y-8 lg:space-y-10">
+        
         <section className="space-y-4">
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">

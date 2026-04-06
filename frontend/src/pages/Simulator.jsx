@@ -84,10 +84,24 @@ export default function Simulator() {
   const exampleTotal = exampleAmount + (exampleAmount * exampleRate) / 100;
   const exampleInstallment = exampleTotal / exampleInstallments;
 
-return (
+if (loading) {
+    return (
+      <AppShell 
+       title="Simule seus empréstimos com cálculo automático"
+    headerVariant="premium"
+    headerIcon={Calculator}
+    headerBadge="Simulação financeira"
+    >
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
   <AppShell
-    title="Simulador"
-    subtitle="Simule seus empréstimos com cálculo automático"
+    title="Simule seus empréstimos com cálculo automático"
     headerVariant="premium"
     headerIcon={Calculator}
     headerBadge="Simulação financeira"

@@ -169,8 +169,10 @@ const Settings = () => {
   if (loading) {
     return (
       <AppShell
-        title="Configurações"
-        subtitle="Gerencie sua conta e preferências"
+        title="Gerencie sua conta e preferências"
+        headerVariant="premium"
+    headerIcon={SettingsIcon}
+    headerBadge="Preferências do sistema"
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -181,8 +183,7 @@ const Settings = () => {
 
 return (
   <AppShell
-    title="Configurações"
-    subtitle="Gerencie sua conta e preferências"
+    title="Gerencie sua conta e preferências"
     headerVariant="premium"
     headerIcon={SettingsIcon}
     headerBadge="Preferências do sistema"
