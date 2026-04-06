@@ -321,7 +321,7 @@ const LoanDetails = () => {
     <div className="hidden sm:flex items-center gap-2">
       <Button
         onClick={handleGenerateContract}
-        className="h-11 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:opacity-95"
+        className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
         data-testid="generate-contract-button"
       >
         <FileText className="mr-2 h-4 w-4" />

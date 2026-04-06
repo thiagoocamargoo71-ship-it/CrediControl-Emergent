@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
+import { FileText } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import {
@@ -177,13 +178,16 @@ const Installments = () => {
     );
   }
 
-  return (
-    <AppShell
-      title="Parcelas"
-      subtitle="Gerencie todas as parcelas dos seus empréstimos"
-      rightAction={rightAction}
-    >
-      <div data-testid="installments-page">
+return (
+  <AppShell
+    title="Parcelas"
+    subtitle="Gerencie todas as parcelas dos seus empréstimos"
+    rightAction={rightAction}
+    headerVariant="premium"
+    headerIcon={FileText}
+    headerBadge="Controle de parcelas"
+  >
+    <div data-testid="installments-page" className="space-y-8 lg:space-y-10">
         
         {stats && (
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">

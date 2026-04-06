@@ -84,12 +84,16 @@ export default function Simulator() {
   const exampleTotal = exampleAmount + (exampleAmount * exampleRate) / 100;
   const exampleInstallment = exampleTotal / exampleInstallments;
 
-  return (
-    <AppShell
-      title="Simulador"
-      subtitle="Simule seus empréstimos com cálculo automático"
-    >
-      <div>
+return (
+  <AppShell
+    title="Simulador"
+    subtitle="Simule seus empréstimos com cálculo automático"
+    headerVariant="premium"
+    headerIcon={Calculator}
+    headerBadge="Simulação financeira"
+  >
+    <div className="space-y-8 lg:space-y-10">
+      
         
         <div className="mx-auto max-w-5xl">
           <div className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/10">
@@ -249,7 +253,7 @@ export default function Simulator() {
 
                     <Button
                       onClick={handleCreateLoan}
-                      className="h-11 rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
+                      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
                     >
                       Criar empréstimo
                       <ArrowRight className="ml-2 h-4 w-4" />

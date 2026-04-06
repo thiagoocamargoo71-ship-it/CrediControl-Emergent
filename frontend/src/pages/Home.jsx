@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { API } from '../App';
 import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
+import { Home } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import {
   ArrowRight,
@@ -363,23 +364,37 @@ const Dashboard = () => {
 
   const statusStyles = getStatusStyles(executiveSummary.status);
 
-  return (
-    <AppShell
-      title="Resumo Inteligente"
-      subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
-     
-      rightAction={
-  <Button
-    onClick={() => fetchDashboardData(true)}
-    disabled={refreshing}
-    variant="outline"
-    className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+return (
+  <AppShell
+    title="Resumo Inteligente"
+    subtitle="Sua leitura operacional da carteira, do risco e das oportunidades."
+    headerVariant="premium"
+    headerIcon={Home}
+    headerBadge="Visão estratégica"
+    rightAction={
+      <Button
+        onClick={() => fetchDashboardData(true)}
+        disabled={refreshing}
+        className="
+          relative h-11 rounded-2xl px-5
+          border border-sky-400/20
+          bg-gradient-to-b from-[#4F8CFF] to-[#3A6FE8]
+          text-white font-medium tracking-tight
+          shadow-[0_6px_18px_rgba(79,140,255,0.25)]
+          transition-transform transition-colors duration-200
+          hover:-translate-y-[1px]
+          hover:from-[#5A98FF] hover:to-[#4A7CF0]
+          hover:shadow-[0_10px_26px_rgba(79,140,255,0.35)]
+          active:translate-y-[0px]
+          active:shadow-[0_4px_12px_rgba(79,140,255,0.25)]
+          disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0
+        "
+      >
+        {refreshing ? 'Atualizando...' : 'Atualizar'}
+      </Button>
+    }
   >
-    {refreshing ? 'Atualizando...' : 'Atualizar'}
-  </Button>
-}
-    >
-      <div data-testid="dashboard-page">
+    <div data-testid="dashboard-page" className="space-y-8 lg:space-y-10">
         
         {/* Header mobile status */}
         <div className="mb-4 lg:hidden">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API } from '../App';
+import { LayoutDashboard } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import {
   DollarSign,
@@ -107,15 +108,19 @@ const UserDashboard = () => {
   }
 
   return (
-    <AppShell
-      title="Dashboard"
-      subtitle="Visão geral dos seus empréstimos"
-    >
-      <div data-testid="user-dashboard">
-        
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {statCards.map((card, index) => {
-            const Icon = card.icon;
+  <AppShell
+    title="Dashboard"
+    subtitle="Visão geral dos seus empréstimos"
+    headerVariant="premium"
+    headerIcon={LayoutDashboard}
+    headerBadge="Visão geral"
+  >
+    <div data-testid="user-dashboard" className="space-y-8 lg:space-y-10">
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {statCards.map((card, index) => {
+          const Icon = card.icon;
+
             return (
               <div
                 key={card.title}

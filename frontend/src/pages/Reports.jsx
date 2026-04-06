@@ -86,6 +86,8 @@ const Reports = () => {
     if (period === 'all') return 'todos';
     if (period === '7days') return '7-dias';
     if (period === '30days') return '30-dias';
+    if (period === '60days') return '60-dias';
+    if (period === '90days') return '90-dias';
     if (period === 'month') return selectedMonth || 'mes';
     return 'relatorio';
   };
@@ -94,6 +96,8 @@ const Reports = () => {
     if (period === 'all') return 'Todos os registros';
     if (period === '7days') return 'Próximos 7 dias';
     if (period === '30days') return 'Próximos 30 dias';
+    if (period === '60days') return 'Próximos 60 dias';
+    if (period === '90days') return 'Próximos 90 dias';
     if (period === 'month') {
       if (!selectedMonth) return 'Filtro mensal';
       return formatMonthLabel(selectedMonth);
@@ -120,6 +124,18 @@ const Reports = () => {
       if (period === '30days') {
         const limitDate = new Date(startOfToday);
         limitDate.setDate(limitDate.getDate() + 30);
+        return itemDate >= startOfToday && itemDate <= limitDate;
+      }
+
+      if (period === '60days') {
+        const limitDate = new Date(startOfToday);
+        limitDate.setDate(limitDate.getDate() + 60);
+        return itemDate >= startOfToday && itemDate <= limitDate;
+      }
+
+      if (period === '90days') {
+        const limitDate = new Date(startOfToday);
+        limitDate.setDate(limitDate.getDate() + 90);
         return itemDate >= startOfToday && itemDate <= limitDate;
       }
 
@@ -492,15 +508,15 @@ const Reports = () => {
     const isActive = period === value;
 
     return isActive
-      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-lg shadow-blue-900/30 hover:opacity-95'
-      : 'bg-neutral-900 text-neutral-300 border border-neutral-700 hover:bg-neutral-800 hover:text-white';
+      ? 'border-transparent bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-900/30 hover:opacity-95'
+      : 'border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white';
   };
 
   const rightAction = (
     <Button
       onClick={handleExportPDF}
       disabled={!filteredInstallments.length}
-      className="h-11 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-transform transition-colors duration-200 hover:-translate-y-[1px] hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
     >
       <FileText className="mr-2 h-4 w-4" />
       Baixar PDF
@@ -513,6 +529,8 @@ const Reports = () => {
         title="Relatórios"
         subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
         rightAction={rightAction}
+        headerVariant="premium"
+        headerIcon={BarChart3}
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -526,144 +544,151 @@ const Reports = () => {
       title="Relatórios"
       subtitle="Visualize o desempenho financeiro e acompanhe sua operação por período."
       rightAction={rightAction}
+      headerVariant="premium"
+      headerIcon={BarChart3}
     >
-      <div data-testid="reports-page" className="space-y-8">
-        <div className="rounded-3xl border border-neutral-800 bg-neutral-950/80 p-4 sm:p-5 lg:p-6">
-          <div className="flex flex-col gap-5">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
-                <BarChart3 className="h-4 w-4" />
-                Painel de Relatórios
-              </div>
+      <div data-testid="reports-page" className="space-y-8 lg:space-y-10">
+        <section className="space-y-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Button
+                onClick={() => setPeriod('all')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('all')}`}
+              >
+                Todos
+              </Button>
+
+              <Button
+                onClick={() => setPeriod('7days')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('7days')}`}
+              >
+                7 dias
+              </Button>
+
+              <Button
+                onClick={() => setPeriod('30days')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('30days')}`}
+              >
+                30 dias
+              </Button>
+
+              <Button
+                onClick={() => setPeriod('60days')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('60days')}`}
+              >
+                60 dias
+              </Button>
+
+              <Button
+                onClick={() => setPeriod('90days')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('90days')}`}
+              >
+                90 dias
+              </Button>
+
+              <Button
+                onClick={() => setPeriod('month')}
+                className={`rounded-2xl px-4 py-2 transition-colors ${getFilterButtonClass('month')}`}
+              >
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Por mês
+              </Button>
+
+              {period === 'month' && (
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-11 rounded-2xl border border-neutral-700 bg-neutral-900 px-4 text-neutral-200 outline-none transition-colors focus:border-blue-500"
+                />
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900/90 p-5">
+              <p className="text-sm text-neutral-400">
+                Filtro atual:{' '}
+                <span className="font-medium text-neutral-200">{getPeriodDisplayLabel()}</span>
+              </p>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              onClick={() => setPeriod('all')}
-              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('all')}`}
-            >
-              Todos
-            </Button>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Total Recebido
+                    </p>
+                    <p className="mt-2 break-words text-2xl font-bold text-emerald-400">
+                      {formatCurrency(summary.totalReceived)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                    <Wallet className="h-5 w-5 text-emerald-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Button
-              onClick={() => setPeriod('7days')}
-              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('7days')}`}
-            >
-              7 dias
-            </Button>
+            <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Total em Aberto
+                    </p>
+                    <p className="mt-2 break-words text-2xl font-bold text-amber-400">
+                      {formatCurrency(summary.totalOpen)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <DollarSign className="h-5 w-5 text-amber-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Button
-              onClick={() => setPeriod('30days')}
-              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('30days')}`}
-            >
-              30 dias
-            </Button>
+            <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Quantidade
+                    </p>
+                    <p className="mt-2 text-2xl font-bold text-neutral-50">
+                      {summary.totalCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
+                    <BarChart3 className="h-5 w-5 text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Button
-              onClick={() => setPeriod('month')}
-              className={`rounded-2xl px-4 py-2 transition-all ${getFilterButtonClass('month')}`}
-            >
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Por mês
-            </Button>
-
-            {period === 'month' && (
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-11 rounded-2xl border border-neutral-700 bg-neutral-900 px-4 text-neutral-200 outline-none transition-colors focus:border-blue-500"
-              />
-            )}
+            <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Em Atraso
+                    </p>
+                    <p className="mt-2 text-2xl font-bold text-rose-400">
+                      {summary.overdueCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3">
+                    <AlertTriangle className="h-5 w-5 text-rose-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                    Total Recebido
-                  </p>
-                  <p className="mt-2 break-words text-2xl font-bold text-emerald-400">
-                    {formatCurrency(summary.totalReceived)}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
-                  <Wallet className="h-5 w-5 text-emerald-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                    Total em Aberto
-                  </p>
-                  <p className="mt-2 break-words text-2xl font-bold text-amber-400">
-                    {formatCurrency(summary.totalOpen)}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                  <DollarSign className="h-5 w-5 text-amber-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                    Quantidade
-                  </p>
-                  <p className="mt-2 text-2xl font-bold text-neutral-50">
-                    {summary.totalCount}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3">
-                  <BarChart3 className="h-5 w-5 text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-neutral-800 bg-neutral-900">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                    Em Atraso
-                  </p>
-                  <p className="mt-2 text-2xl font-bold text-rose-400">
-                    {summary.overdueCount}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3">
-                  <AlertTriangle className="h-5 w-5 text-rose-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
-          <p className="text-sm text-neutral-400">
-            Filtro atual:{' '}
-            <span className="font-medium text-neutral-200">{getPeriodDisplayLabel()}</span>
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-neutral-800 bg-neutral-900">
-          <div className="border-b border-neutral-800 p-5">
+        <section className="rounded-3xl border border-neutral-800 bg-neutral-900">
+          <div className="border-b border-neutral-800 px-5 py-5 sm:px-6">
             <h2 className="text-lg font-semibold text-neutral-50">Detalhamento das parcelas</h2>
             <p className="mt-1 text-sm text-neutral-500">
               Visualização consolidada das parcelas filtradas
@@ -773,10 +798,10 @@ const Reports = () => {
               ))
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="rounded-3xl border border-neutral-800 bg-neutral-900">
-          <div className="border-b border-neutral-800 p-5">
+        <section className="rounded-3xl border border-neutral-800 bg-neutral-900">
+          <div className="border-b border-neutral-800 px-5 py-5 sm:px-6">
             <h2 className="text-lg font-semibold text-neutral-50">Resumo mensal</h2>
             <p className="mt-1 text-sm text-neutral-500">
               Consolidado financeiro do período selecionado
@@ -870,7 +895,7 @@ const Reports = () => {
               ))
             )}
           </div>
-        </div>
+        </section>
       </div>
     </AppShell>
   );

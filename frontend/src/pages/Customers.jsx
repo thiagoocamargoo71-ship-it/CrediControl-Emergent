@@ -6,6 +6,7 @@ import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Users } from 'lucide-react';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Checkbox } from '../components/ui/checkbox';
@@ -232,10 +233,10 @@ const Customers = () => {
   const rightAction = (
     <Button
       onClick={() => openModal()}
-      className="h-11 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
       data-testid="add-customer-button"
     >
-      <Plus className="h-4 w-4" />
+      <Plus className="mr-2 h-4 w-4" />
       <span className="hidden sm:inline">Novo Cliente</span>
     </Button>
   );
@@ -250,25 +251,28 @@ const Customers = () => {
     );
   }
 
-  return (
-    <AppShell
-      title="Clientes"
-      subtitle="Gerencie seus clientes"
-      rightAction={rightAction}
-    >
-      <div data-testid="customers-page">
-        
-        <div className="relative mb-6 max-w-xl">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
-          <Input
-            type="text"
-            placeholder="Buscar por nome ou telefone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-12 rounded-2xl border-neutral-800 bg-neutral-900 pl-10 text-neutral-50 placeholder:text-neutral-600"
-            data-testid="search-customers-input"
-          />
-        </div>
+return (
+  <AppShell
+    title="Clientes"
+    subtitle="Gerencie seus clientes"
+    rightAction={rightAction}
+    headerVariant="premium"
+    headerIcon={Users}
+    headerBadge="Gestão de clientes"
+  >
+    <div data-testid="customers-page" className="space-y-8 lg:space-y-10">
+      
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+        <Input
+          type="text"
+          placeholder="Buscar por nome ou telefone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="h-12 rounded-2xl border-neutral-800 bg-neutral-900 pl-10 text-neutral-50 placeholder:text-neutral-600 focus:border-blue-500"
+          data-testid="search-customers-input"
+        />
+      </div>
 
         {filteredCustomers.length === 0 ? (
           <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-8 text-center sm:p-12">

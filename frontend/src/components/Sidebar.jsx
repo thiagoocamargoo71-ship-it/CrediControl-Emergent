@@ -5,7 +5,7 @@ import {
   LayoutDashboard,
   Users,
   Calculator,
-  CreditCard,
+  Wallet,
   LogOut,
   ChevronRight,
   Receipt,
@@ -114,14 +114,30 @@ const SidebarContent = ({ links, location, onNavigate, user, handleLogout }) => 
         </div>
 
         <Button
-          onClick={handleLogout}
-          variant="ghost"
-          className="mt-3 h-11 w-full justify-start gap-3 rounded-2xl border border-transparent text-neutral-400 transition-all duration-300 hover:border-neutral-800 hover:bg-neutral-900 hover:text-white"
-          data-testid="logout-button"
-        >
-          <LogOut className="h-5 w-5" strokeWidth={1.8} />
-          Sair
-        </Button>
+  onClick={handleLogout}
+  className="
+    relative mt-2 h-9 w-50 gap-3 rounded-2xl px-4
+
+    bg-gradient-to-b from-[#FB7185]/80 to-[#E11D48]/80
+    text-white font-medium tracking-tight
+
+    border border-white/10
+    shadow-[0_4px_14px_rgba(244,63,94,0.18)]
+
+    transition-all duration-200
+
+    hover:-translate-y-[1px]
+    hover:from-[#FDA4AF]/90 hover:to-[#F43F5E]/90
+    hover:shadow-[0_8px_22px_rgba(244,63,94,0.25)]
+
+    active:translate-y-[0px]
+    active:shadow-[0_3px_10px_rgba(244,63,94,0.18)]
+  "
+  data-testid="logout-button"
+>
+  <LogOut className="h-4 w-4 opacity-85" strokeWidth={1.8} />
+  Sair
+</Button>
       </div>
     </>
   );
@@ -146,7 +162,7 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
     { path: '/home', label: 'Início', icon: HomeIcon },
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/customers', label: 'Clientes', icon: Users },
-    { path: '/loans', label: 'Empréstimos', icon: CreditCard },
+    { path: '/loans', label: 'Empréstimos', icon: Wallet },
     { path: '/installments', label: 'Parcelas', icon: Receipt },
     { path: '/reports', label: 'Relatórios', icon: BarChart3 },
     { path: '/simulator', label: 'Simulador', icon: Calculator },

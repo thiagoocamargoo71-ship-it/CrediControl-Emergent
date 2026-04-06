@@ -3,6 +3,7 @@ import axios from 'axios';
 import { API, formatApiErrorDetail, useAuth } from '../App';
 import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
+import { SettingsIcon } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import {
@@ -178,12 +179,15 @@ const Settings = () => {
     );
   }
 
-  return (
-    <AppShell
-      title="Configurações"
-      subtitle="Gerencie sua conta e preferências"
-    >
-      <div data-testid="settings-page">
+return (
+  <AppShell
+    title="Configurações"
+    subtitle="Gerencie sua conta e preferências"
+    headerVariant="premium"
+    headerIcon={SettingsIcon}
+    headerBadge="Preferências do sistema"
+  >
+    <div data-testid="settings-page" className="space-y-8 lg:space-y-10">
         
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           {/* Dados da Conta */}
@@ -241,7 +245,7 @@ const Settings = () => {
               <Button
                 type="submit"
                 disabled={savingAccount}
-                className="h-11 w-full rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
+                className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
                 data-testid="save-account-button"
               >
                 <Save className="mr-2 h-4 w-4" />
@@ -363,14 +367,32 @@ const Settings = () => {
               </div>
 
               <Button
-                type="submit"
-                disabled={savingPassword}
-                className="h-11 w-full rounded-2xl bg-amber-600 text-white hover:bg-amber-700"
-                data-testid="change-password-button"
-              >
-                <Lock className="mr-2 h-4 w-4" />
-                {savingPassword ? 'Alterando...' : 'Alterar Senha'}
-              </Button>
+  type="submit"
+  disabled={savingPassword}
+  className="
+    relative h-11 px-5 rounded-2xl
+    bg-gradient-to-b from-[#FB923C] to-[#EA580C]
+    text-white font-medium tracking-tight
+
+    border border-white/10
+    shadow-[0_6px_18px_rgba(251,146,60,0.25)]
+
+    transition-transform transition-colors duration-200
+
+    hover:-translate-y-[1px]
+    hover:from-[#FDBA74] hover:to-[#F97316]
+    hover:shadow-[0_10px_26px_rgba(251,146,60,0.35)]
+
+    active:translate-y-[0px]
+    active:shadow-[0_4px_12px_rgba(251,146,60,0.25)]
+
+    flex items-center justify-center gap-2
+  "
+  data-testid="change-password-button"
+>
+  <Lock className="h-4 w-4 opacity-90" />
+  {savingPassword ? 'Alterando...' : 'Alterar Senha'}
+</Button>
             </form>
           </div>
 
@@ -478,14 +500,32 @@ const Settings = () => {
               </div>
 
               <Button
-                type="submit"
-                disabled={savingPreferences}
-                className="h-11 w-full rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
-                data-testid="save-preferences-button"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {savingPreferences ? 'Salvando...' : 'Salvar Preferências'}
-              </Button>
+  type="submit"
+  disabled={savingPreferences}
+  className="
+    relative h-11 px-5 w-full sm:w-auto rounded-2xl
+    bg-gradient-to-b from-[#34D399] to-[#059669]
+    text-white font-medium tracking-tight
+
+    border border-white/10
+    shadow-[0_6px_18px_rgba(52,211,153,0.25)]
+
+    transition-transform transition-colors duration-200
+
+    hover:-translate-y-[1px]
+    hover:from-[#6EE7B7] hover:to-[#10B981]
+    hover:shadow-[0_10px_26px_rgba(52,211,153,0.35)]
+
+    active:translate-y-[0px]
+    active:shadow-[0_4px_12px_rgba(52,211,153,0.25)]
+
+    flex items-center justify-center gap-2
+  "
+  data-testid="save-preferences-button"
+>
+  <Save className="h-4 w-4 opacity-90" />
+  {savingPreferences ? 'Salvando...' : 'Salvar Preferências'}
+</Button>
             </form>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API, formatApiErrorDetail } from '../App';
 import AppShell from '../components/AppShell';
 import { Button } from '../components/ui/button';
+import { Wallet } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
@@ -213,11 +214,11 @@ const Loans = () => {
   const rightAction = (
     <Button
       onClick={() => setIsModalOpen(true)}
-      className="h-11 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
       disabled={customers.length === 0}
       data-testid="add-loan-button"
     >
-      <Plus className="h-4 w-4" />
+      <Plus className="mr-2 h-4 w-4" />
       <span className="hidden sm:inline">Novo Empréstimo</span>
     </Button>
   );
@@ -232,13 +233,16 @@ const Loans = () => {
     );
   }
 
-  return (
-    <AppShell
-      title="Empréstimos"
-      subtitle="Gerencie seus empréstimos"
-      rightAction={rightAction}
-    >
-      <div data-testid="loans-page">
+return (
+  <AppShell
+    title="Empréstimos"
+    subtitle="Gerencie seus empréstimos"
+    rightAction={rightAction}
+    headerVariant="premium"
+    headerIcon={Wallet}
+    headerBadge="Operação financeira"
+  >
+    <div data-testid="loans-page" className="space-y-8 lg:space-y-10">
         
         <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative max-w-xl flex-1">
@@ -294,14 +298,15 @@ const Loans = () => {
             <p className="mb-6 text-neutral-500">
               {searchTerm ? 'Tente outra busca' : 'Comece criando seu primeiro empréstimo'}
             </p>
-            {!searchTerm && (
+           {!searchTerm && (
               <Button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-blue-600 text-white hover:bg-blue-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Empréstimo
-              </Button>
+      onClick={() => openModal()}
+      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
+      data-testid="add-customer-button"
+    >
+      <Plus className="mr-2 h-4 w-4" />
+      <span className="hidden sm:inline">Novo Empréstimo</span>
+    </Button>
             )}
           </div>
         ) : (
