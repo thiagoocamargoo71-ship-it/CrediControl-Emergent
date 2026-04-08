@@ -261,16 +261,7 @@ const Login = () => {
                       />
                       Lembrar usuário
                     </label>
-
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-400">
-                      <input
-                        type="checkbox"
-                        checked={rememberSession}
-                        onChange={(e) => setRememberSession(e.target.checked)}
-                        className="h-4 w-4 rounded border border-white/15 bg-black/30 text-sky-500 accent-sky-500"
-                      />
-                      Manter sessão ativa
-                    </label>
+                  
                   </div>
 
                   <Button

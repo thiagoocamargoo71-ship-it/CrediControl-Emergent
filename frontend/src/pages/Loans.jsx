@@ -403,11 +403,11 @@ const Loans = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => navigate(`/loans/${loan.id}`)}
-                              className="h-10 rounded-2xl border border-white/8 bg-white/[0.02] px-3 text-neutral-300 hover:bg-white/[0.04] hover:text-white"
+                              className="h-10 rounded-2xl border border-white/8 bg-white/[0.02] px-3 text-neutral-400 hover:bg-blue-500/10 hover:text-blue-400"
                               data-testid={`contract-loan-${loan.id}`}
                               title="Contrato"
                             >
-                              <FileText className="mr-2 h-4 w-4 text-neutral-400" />
+                              <FileText className="h-4 w-4" />
                               Contrato
                             </Button>
 
@@ -415,11 +415,11 @@ const Loans = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => navigate(`/loans/${loan.id}`)}
-                              className="h-10 rounded-2xl border border-white/8 bg-white/[0.02] px-3 text-neutral-300 hover:bg-white/[0.04] hover:text-white"
+                              className="h-10 rounded-2xl border border-white/8 bg-white/[0.02] px-3 text-neutral-400 hover:bg-blue-500/10 hover:text-blue-400"
                               data-testid={`view-loan-${loan.id}`}
                               title="Visualizar"
                             >
-                              <Eye className="mr-2 h-4 w-4 text-neutral-400" />
+                              <Eye className="h-4 w-4" />
                               Ver
                             </Button>
 

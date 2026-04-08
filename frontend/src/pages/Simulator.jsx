@@ -77,6 +77,10 @@ export default function Simulator() {
     navigate('/loans');
   };
 
+  const handleCreateCustomers = () => {
+    navigate('/Customers');
+  };
+
   const exampleAmount = Number(amount) || 1000;
   const exampleRate = Number(rate) || 10;
   const exampleInstallments = Number(installments) || 10;
@@ -259,9 +263,9 @@ if (loading) {
                     <Button
                       onClick={resetSimulation}
                       variant="outline"
-                      className="h-11 rounded-2xl border-neutral-700 bg-neutral-900 text-white hover:bg-neutral-800"
+                      className="h-11 rounded-2xl border border-white/8 bg-white/[0.02] px-3 text-neutral-400 hover:bg-blue-500/10 hover:text-blue-400"
                     >
-                      <RefreshCcw className="mr-2 h-4 w-4" />
+                      <RefreshCcw className="h-4 w-4" />
                       Nova simulação
                     </Button>
 
@@ -270,6 +274,14 @@ if (loading) {
                       className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
                     >
                       Criar empréstimo
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      onClick={handleCreateCustomers}
+                      className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
+                    >
+                      Criar cliente
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
