@@ -29,9 +29,12 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNotifications } from '../context/NotificationContext';
 
 const Installments = () => {
   const navigate = useNavigate();
+  const { setCount } = useNotifications();
+
   const [installments, setInstallments] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -157,10 +160,44 @@ const Installments = () => {
     { value: 'overdue', label: 'Vencidas' },
   ];
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const getAlertType = (installment) => {
+    if (installment.status === 'paid') return null;
+
+    const due = new Date(`${installment.due_date}T00:00:00`);
+    due.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+    if (diff === 0) return 'today';
+    if (diff > 0 && diff <= 7) return 'upcoming';
+    if (diff < 0 && diff >= -14) return 'overdue';
+
+    return null;
+  };
+
+  const alertCount = installments.filter((installment) => getAlertType(installment)).length;
+
+  useEffect(() => {
+    setCount(alertCount);
+  }, [alertCount, setCount]);
+
   const rightAction = (
-    <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-      <CreditCard className="h-4 w-4 text-blue-400" />
-      {installments.length} parcelas
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        onClick={() => navigate('/notifications')}
+        className="border-amber-500/20 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+      >
+        Ver alertas
+      </Button>
+
+      <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
+        <CreditCard className="h-4 w-4 text-blue-400" />
+        {installments.length} parcelas
+      </div>
     </div>
   );
 
@@ -169,9 +206,9 @@ const Installments = () => {
       <AppShell
         title="Gerencie todas as parcelas dos seus empréstimos"
         rightAction={rightAction}
-    headerVariant="premium"
-    headerIcon={Receipt}
-    headerBadge="Controle de parcelas"
+        headerVariant="premium"
+        headerIcon={Receipt}
+        headerBadge="Controle de parcelas"
       >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
@@ -180,16 +217,15 @@ const Installments = () => {
     );
   }
 
-return (
-  <AppShell
-    title="Gerencie todas as parcelas dos seus empréstimos"
-    rightAction={rightAction}
-    headerVariant="premium"
-    headerIcon={Receipt}
-    headerBadge="Controle de parcelas"
-  >
-    <div data-testid="installments-page" className="space-y-8 lg:space-y-10">
-        
+  return (
+    <AppShell
+      title="Gerencie todas as parcelas dos seus empréstimos"
+      rightAction={rightAction}
+      headerVariant="premium"
+      headerIcon={Receipt}
+      headerBadge="Controle de parcelas"
+    >
+      <div data-testid="installments-page" className="space-y-8 lg:space-y-10">
         {stats && (
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4">
@@ -371,11 +407,20 @@ return (
                     {installments.map((installment) => {
                       const statusConfig = getStatusConfig(installment.status);
                       const StatusIcon = statusConfig.icon;
+                      const alertType = getAlertType(installment);
 
                       return (
                         <tr
                           key={installment.id}
-                          className="border-b border-neutral-800/50 transition-colors hover:bg-neutral-800/30"
+                          className={`border-b border-neutral-800/50 transition-all ${
+                            alertType === 'overdue'
+                              ? 'bg-rose-500/5 hover:bg-rose-500/10'
+                              : alertType === 'today'
+                              ? 'bg-amber-500/5 hover:bg-amber-500/10'
+                              : alertType === 'upcoming'
+                              ? 'bg-sky-500/5 hover:bg-sky-500/10'
+                              : 'hover:bg-neutral-800/30'
+                          }`}
                           data-testid={`installment-row-${installment.id}`}
                         >
                           <td className="px-6 py-4">
@@ -475,11 +520,20 @@ return (
               {installments.map((installment) => {
                 const statusConfig = getStatusConfig(installment.status);
                 const StatusIcon = statusConfig.icon;
+                const alertType = getAlertType(installment);
 
                 return (
                   <div
                     key={installment.id}
-                    className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5"
+                    className={`rounded-3xl border p-5 ${
+                      alertType === 'overdue'
+                        ? 'border-rose-500/20 bg-rose-500/5'
+                        : alertType === 'today'
+                        ? 'border-amber-500/20 bg-amber-500/5'
+                        : alertType === 'upcoming'
+                        ? 'border-sky-500/20 bg-sky-500/5'
+                        : 'border-neutral-800 bg-neutral-900'
+                    }`}
                     data-testid={`installment-row-${installment.id}`}
                   >
                     <div className="mb-4 flex items-start justify-between gap-3">

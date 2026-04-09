@@ -8,11 +8,14 @@ import { Home } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import {
   ArrowRight,
+  BellRing,
   Briefcase,
   CalendarClock,
+  CheckCircle2,
   Gauge,
   ShieldAlert,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { buildDashboardHomeData } from '../utils/buildDashboardHomeData';
@@ -20,9 +23,13 @@ import {
   buildExecutiveSummary,
   getExecutiveStatusMeta,
 } from '../utils/buildExecutiveSummary';
+import { useNotifications } from '../context/NotificationContext';
+
+const NOTIFICATION_POPUP_SESSION_KEY = 'credicontrol_notifications_popup_shown';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { setCount } = useNotifications();
 
   const [customers, setCustomers] = useState([]);
   const [customerStatuses, setCustomerStatuses] = useState({});
@@ -32,6 +39,8 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [showNotificationsPopup, setShowNotificationsPopup] = useState(false);
 
   const fetchDashboardData = useCallback(async (isBackgroundRefresh = false) => {
     try {
@@ -116,6 +125,162 @@ const Dashboard = () => {
 
   const formatPercent = (value) => `${Number(value || 0).toFixed(1)}%`;
 
+  const startOfToday = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+
+  const normalizeInstallmentDate = (installment) => {
+    const rawDate =
+      installment?.due_date ||
+      installment?.dueDate ||
+      installment?.vencimento ||
+      installment?.data_vencimento ||
+      installment?.date;
+
+    if (!rawDate) return null;
+
+    const parsedDate = new Date(rawDate);
+    if (Number.isNaN(parsedDate.getTime())) return null;
+
+    parsedDate.setHours(0, 0, 0, 0);
+    return parsedDate;
+  };
+
+  const getInstallmentPaidStatus = (installment) => {
+    const rawStatus = String(installment?.status || installment?.payment_status || '')
+      .trim()
+      .toLowerCase();
+
+    if (
+      installment?.paid === true ||
+      installment?.isPaid === true ||
+      installment?.received === true ||
+      rawStatus === 'paid' ||
+      rawStatus === 'paga' ||
+      rawStatus === 'pago' ||
+      rawStatus === 'recebido' ||
+      rawStatus === 'received'
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const getInstallmentDisplayNumber = (installment, index) => {
+    return (
+      installment?.number ||
+      installment?.installment_number ||
+      installment?.numero ||
+      installment?.sequence ||
+      installment?.id ||
+      index + 1
+    );
+  };
+
+  const getDaysDifference = (targetDate) => {
+    if (!targetDate) return null;
+    return Math.round((targetDate.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const installmentsNotifications = useMemo(() => {
+    if (!Array.isArray(installments) || !installments.length) return [];
+
+    return installments
+      .map((installment, index) => {
+        const dueDate = normalizeInstallmentDate(installment);
+        const isPaid = getInstallmentPaidStatus(installment);
+
+        if (!dueDate || isPaid) return null;
+
+        const diffDays = getDaysDifference(dueDate);
+        if (diffDays === null) return null;
+
+        let status = 'normal';
+        let statusLabel = '';
+        let priority = 99;
+        let relativeText = '';
+
+        if (diffDays === 0) {
+          status = 'vence_hoje';
+          statusLabel = 'Vence hoje';
+          priority = 1;
+          relativeText = 'Vence hoje';
+        } else if (diffDays > 0 && diffDays <= 7) {
+          status = 'proxima';
+          statusLabel = 'Próxima do vencimento';
+          priority = 2;
+          relativeText = diffDays === 1 ? 'Vence em 1 dia' : `Vence em ${diffDays} dias`;
+        } else if (diffDays < 0 && diffDays >= -14) {
+          const overdueDays = Math.abs(diffDays);
+          status = 'vencida';
+          statusLabel = 'Vencida';
+          priority = 0;
+          relativeText =
+            overdueDays === 1 ? 'Atrasada há 1 dia' : `Atrasada há ${overdueDays} dias`;
+        }
+
+        if (status === 'normal') return null;
+
+        return {
+          raw: installment,
+          id: installment?.id ?? `installment-${index}`,
+          number: getInstallmentDisplayNumber(installment, index),
+          amount:
+            installment?.amount ??
+            installment?.value ??
+            installment?.valor ??
+            installment?.installment_amount ??
+            0,
+          dueDate,
+          dueDateLabel: dueDate.toLocaleDateString('pt-BR'),
+          status,
+          statusLabel,
+          priority,
+          relativeText,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        return a.dueDate.getTime() - b.dueDate.getTime();
+      });
+  }, [installments, startOfToday]);
+
+  const notificationSummary = useMemo(() => {
+    const vencidas = installmentsNotifications.filter((item) => item.status === 'vencida').length;
+    const venceHoje = installmentsNotifications.filter(
+      (item) => item.status === 'vence_hoje'
+    ).length;
+    const proximas = installmentsNotifications.filter((item) => item.status === 'proxima').length;
+
+    return {
+      total: installmentsNotifications.length,
+      vencidas,
+      venceHoje,
+      proximas,
+      hasNotifications: installmentsNotifications.length > 0,
+    };
+  }, [installmentsNotifications]);
+
+  useEffect(() => {
+    setCount(notificationSummary.total);
+  }, [notificationSummary.total, setCount]);
+
+  useEffect(() => {
+    if (loading || !notificationSummary.hasNotifications) return;
+
+    const alreadyShownInSession =
+      sessionStorage.getItem(NOTIFICATION_POPUP_SESSION_KEY) === 'true';
+
+    if (!alreadyShownInSession) {
+      setShowNotificationsPopup(true);
+      sessionStorage.setItem(NOTIFICATION_POPUP_SESSION_KEY, 'true');
+    }
+  }, [loading, notificationSummary.hasNotifications]);
+
   const getStatusStyles = (status) => {
     const styles = {
       saudavel: {
@@ -152,6 +317,13 @@ const Dashboard = () => {
   };
 
   const getQuickActionConfig = () => {
+    if (notificationSummary.hasNotifications) {
+      return {
+        label: 'Ver notificações',
+        onClick: () => navigate('/notifications'),
+      };
+    }
+
     if (!homeData || !executiveSummary) {
       return {
         label: 'Ver operação',
@@ -293,6 +465,31 @@ const Dashboard = () => {
     return items.slice(0, 4);
   };
 
+  const getNotificationItemStyles = (status) => {
+    switch (status) {
+      case 'vencida':
+        return {
+          badge: 'border-rose-500/20 bg-rose-500/10 text-rose-300',
+          dot: 'bg-rose-400',
+        };
+      case 'vence_hoje':
+        return {
+          badge: 'border-amber-500/20 bg-amber-500/10 text-amber-300',
+          dot: 'bg-amber-400',
+        };
+      case 'proxima':
+        return {
+          badge: 'border-sky-500/20 bg-sky-500/10 text-sky-300',
+          dot: 'bg-sky-400',
+        };
+      default:
+        return {
+          badge: 'border-neutral-700 bg-neutral-800 text-neutral-300',
+          dot: 'bg-neutral-400',
+        };
+    }
+  };
+
   const quickAction = getQuickActionConfig();
   const alertItems = getAlertItems();
   const opportunityItems = getOpportunityItems();
@@ -319,9 +516,7 @@ const Dashboard = () => {
 
   if (!homeData || !executiveSummary || !statusMeta) {
     return (
-      <AppShell
-        title="Sua leitura operacional da carteira, do risco e das oportunidades."
-      >
+      <AppShell title="Sua leitura operacional da carteira, do risco e das oportunidades.">
         <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 text-center sm:p-8 lg:p-10">
           <Briefcase className="mx-auto mb-4 h-12 w-12 text-neutral-600" />
           <h1 className="mb-2 text-2xl font-bold text-neutral-50">
@@ -386,6 +581,121 @@ const Dashboard = () => {
         <div className="mb-4 lg:hidden">
           {refreshing && <span className="text-xs text-neutral-500">Atualizando...</span>}
         </div>
+
+        {showNotificationsPopup && notificationSummary.hasNotifications && (
+          <div className="fixed right-4 top-24 z-50 w-[calc(100%-2rem)] max-w-md animate-fade-in sm:right-6 sm:top-24">
+            <div className="overflow-hidden rounded-3xl border border-amber-500/20 bg-neutral-950/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+              <div className="border-b border-neutral-800 bg-gradient-to-r from-amber-500/10 via-neutral-950 to-neutral-950 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10">
+                      <BellRing className="h-5 w-5 text-amber-300" />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                        Notificações financeiras
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-neutral-50">
+                        Você tem {notificationSummary.total}{' '}
+                        {notificationSummary.total === 1
+                          ? 'parcela que exige atenção'
+                          : 'parcelas que exigem atenção'}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowNotificationsPopup(false)}
+                    className="rounded-xl border border-neutral-800 bg-neutral-900 p-2 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                    aria-label="Fechar alerta"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                      Vencidas
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-rose-300">
+                      {notificationSummary.vencidas}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                      Hoje
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-amber-300">
+                      {notificationSummary.venceHoje}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                      Próximas
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-sky-300">
+                      {notificationSummary.proximas}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5">
+                <div className="space-y-3">
+                  {installmentsNotifications.slice(0, 3).map((item) => {
+                    const itemStyles = getNotificationItemStyles(item.status);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-neutral-800 bg-neutral-900/80 p-4"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-neutral-100">
+                              Parcela #{item.number}
+                            </p>
+                            <p className="mt-1 text-sm text-neutral-400">
+                              {formatCurrency(item.amount)} • {item.dueDateLabel}
+                            </p>
+                          </div>
+
+                          <span
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${itemStyles.badge}`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${itemStyles.dot}`} />
+                            {item.relativeText}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    onClick={() => navigate('/notifications')}
+                    className="h-11 w-full bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Ver notificações
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNotificationsPopup(false)}
+                    className="h-11 w-full border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className="relative mb-6 overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 animate-fade-in">
           <div
@@ -507,6 +817,167 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
+
+        {notificationSummary.hasNotifications ? (
+          <section className="animate-fade-in">
+            <div className="overflow-hidden rounded-3xl border border-amber-500/20 bg-neutral-900">
+              <div className="border-b border-neutral-800 bg-gradient-to-r from-amber-500/10 via-neutral-900 to-neutral-900 p-4 sm:p-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3">
+                      <BellRing className="h-5 w-5 text-amber-300" />
+                    </div>
+
+                    <div>
+                      <h2 className="text-lg font-bold text-neutral-50">
+                        Notificações financeiras
+                      </h2>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        Você possui parcelas que vencem hoje, próximas do vencimento ou já
+                        vencidas.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => navigate('/notifications')}
+                    className="h-11 w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+                  >
+                    Ver notificações
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Vencidas
+                    </p>
+                    <p className="mt-2 text-3xl font-bold text-rose-300">
+                      {notificationSummary.vencidas}
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-400">
+                      Parcelas com até 14 dias de atraso
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Vence hoje
+                    </p>
+                    <p className="mt-2 text-3xl font-bold text-amber-300">
+                      {notificationSummary.venceHoje}
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-400">
+                      Parcelas que exigem atenção imediata hoje
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      Próximas
+                    </p>
+                    <p className="mt-2 text-3xl font-bold text-sky-300">
+                      {notificationSummary.proximas}
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-400">
+                      Parcelas com vencimento nos próximos 7 dias
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-100">
+                        Parcelas que exigem atenção agora
+                      </p>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        Resumo rápido das notificações mais relevantes no momento
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {installmentsNotifications.slice(0, 4).map((item) => {
+                      const itemStyles = getNotificationItemStyles(item.status);
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-3 rounded-2xl border border-neutral-800 bg-neutral-900 p-4 lg:flex-row lg:items-center lg:justify-between"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-neutral-100">
+                                Parcela #{item.number}
+                              </p>
+                              <span
+                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${itemStyles.badge}`}
+                              >
+                                <span className={`h-2 w-2 rounded-full ${itemStyles.dot}`} />
+                                {item.statusLabel}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-sm text-neutral-400">
+                              {formatCurrency(item.amount)} • Vencimento em {item.dueDateLabel}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <p className="text-sm font-medium text-neutral-300">
+                              {item.relativeText}
+                            </p>
+
+                            <Button
+                              variant="outline"
+                              onClick={() => navigate('/notifications')}
+                              className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                            >
+                              Ver detalhes
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="animate-fade-in">
+            <div className="rounded-3xl border border-emerald-500/20 bg-neutral-900 p-4 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                  </div>
+
+                  <div>
+                    <h2 className="text-lg font-bold text-neutral-50">
+                      Nenhuma notificação financeira no momento
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-400">
+                      Não há parcelas vencendo hoje, próximas do vencimento ou vencidas dentro
+                      da regra atual.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/installments')}
+                  className="border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                >
+                  Ver parcelas
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3 animate-fade-in">
           <div className="space-y-6 xl:col-span-2">
@@ -659,6 +1130,26 @@ const Dashboard = () => {
                   <p className="mt-1 text-sm text-neutral-400">
                     Analise perfis, bons pagadores e novas oportunidades
                   </p>
+                </button>
+
+                <button
+                  onClick={() => navigate('/notifications')}
+                  className="w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-left transition-colors hover:bg-neutral-900"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-100">Notificações</p>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        Veja parcelas vencidas, que vencem hoje e próximas do vencimento
+                      </p>
+                    </div>
+
+                    {notificationSummary.hasNotifications ? (
+                      <span className="inline-flex min-w-[32px] items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-300">
+                        {notificationSummary.total}
+                      </span>
+                    ) : null}
+                  </div>
                 </button>
               </div>
             </div>
