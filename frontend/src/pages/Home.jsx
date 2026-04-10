@@ -246,7 +246,7 @@ const Dashboard = () => {
         if (a.priority !== b.priority) return a.priority - b.priority;
         return a.dueDate.getTime() - b.dueDate.getTime();
       });
-  }, [installments, startOfToday, getDaysDifference]);
+  }, [installments, getDaysDifference]);
 
   const notificationSummary = useMemo(() => {
     const vencidas = installmentsNotifications.filter((item) => item.status === 'vencida').length;
