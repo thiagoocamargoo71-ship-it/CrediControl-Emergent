@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -14,7 +14,6 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  CreditCard,
   FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -30,12 +29,10 @@ const LoanDetails = () => {
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
+
       const [loanRes, installmentsRes] = await Promise.all([
         axios.get(`${API}/loans/${id}`),
         axios.get(`${API}/installments/loan/${id}`),
@@ -49,7 +46,11 @@ const LoanDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handlePayInstallment = async (installmentId) => {
     setPayingId(installmentId);
@@ -57,7 +58,7 @@ const LoanDetails = () => {
     try {
       await axios.post(`${API}/installments/${installmentId}/pay`);
       toast.success('Pagamento registrado com sucesso!');
-      fetchData();
+      await fetchData();
     } catch (error) {
       toast.error(
         formatApiErrorDetail(error.response?.data?.detail) ||

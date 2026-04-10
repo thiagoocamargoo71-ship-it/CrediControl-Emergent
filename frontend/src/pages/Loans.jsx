@@ -40,7 +40,6 @@ import {
   X,
   User,
   FileText,
-  ChevronRight,
   ArrowUpRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -71,21 +70,10 @@ const Loans = () => {
   const [formData, setFormData] = useState(initialFormState);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (customerFilter && customers.length > 0) {
-      const customer = customers.find((c) => c.id === customerFilter);
-      if (customer) {
-        setFilterCustomerName(customer.name);
-      }
-    }
-  }, [customerFilter, customers]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
+
       const [loansRes, customersRes, prefsRes] = await Promise.all([
         axios.get(`${API}/loans`),
         axios.get(`${API}/customers`),
@@ -110,7 +98,20 @@ const Loans = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [preferencesLoaded]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (customerFilter && customers.length > 0) {
+      const customer = customers.find((c) => c.id === customerFilter);
+      if (customer) {
+        setFilterCustomerName(customer.name);
+      }
+    }
+  }, [customerFilter, customers]);
 
   const loadDefaultPreferences = useCallback(async () => {
     try {
@@ -138,6 +139,12 @@ const Loans = () => {
     setFilterCustomerName(null);
   };
 
+  const closeModal = useCallback(async () => {
+    setIsModalOpen(false);
+    await loadDefaultPreferences();
+    setStartDate(new Date());
+  }, [loadDefaultPreferences]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -154,8 +161,8 @@ const Loans = () => {
 
       await axios.post(`${API}/loans`, payload);
       toast.success('Empréstimo criado com sucesso!');
-      fetchData();
-      closeModal();
+      await fetchData();
+      await closeModal();
     } catch (error) {
       toast.error(
         formatApiErrorDetail(error.response?.data?.detail) || 'Erro ao criar empréstimo'
@@ -171,18 +178,12 @@ const Loans = () => {
     try {
       await axios.delete(`${API}/loans/${loanId}`);
       toast.success('Empréstimo excluído com sucesso!');
-      fetchData();
+      await fetchData();
     } catch (error) {
       toast.error(
         formatApiErrorDetail(error.response?.data?.detail) || 'Erro ao excluir empréstimo'
       );
     }
-  };
-
-  const closeModal = async () => {
-    setIsModalOpen(false);
-    await loadDefaultPreferences();
-    setStartDate(new Date());
   };
 
   const formatCurrency = (value) =>

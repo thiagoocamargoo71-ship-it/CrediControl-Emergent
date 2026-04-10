@@ -153,7 +153,7 @@ const Dashboard = () => {
       .trim()
       .toLowerCase();
 
-    if (
+    return (
       installment?.paid === true ||
       installment?.isPaid === true ||
       installment?.received === true ||
@@ -162,11 +162,7 @@ const Dashboard = () => {
       rawStatus === 'pago' ||
       rawStatus === 'recebido' ||
       rawStatus === 'received'
-    ) {
-      return true;
-    }
-
-    return false;
+    );
   };
 
   const getInstallmentDisplayNumber = (installment, index) => {
@@ -180,10 +176,13 @@ const Dashboard = () => {
     );
   };
 
-  const getDaysDifference = (targetDate) => {
+  // ✅ CORREÇÃO AQUI
+  const getDaysDifference = useCallback((targetDate) => {
     if (!targetDate) return null;
-    return Math.round((targetDate.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24));
-  };
+    return Math.round(
+      (targetDate.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24)
+    );
+  }, [startOfToday]);
 
   const installmentsNotifications = useMemo(() => {
     if (!Array.isArray(installments) || !installments.length) return [];
@@ -247,7 +246,7 @@ const Dashboard = () => {
         if (a.priority !== b.priority) return a.priority - b.priority;
         return a.dueDate.getTime() - b.dueDate.getTime();
       });
-  }, [installments, startOfToday]);
+  }, [installments, startOfToday, getDaysDifference]);
 
   const notificationSummary = useMemo(() => {
     const vencidas = installmentsNotifications.filter((item) => item.status === 'vencida').length;

@@ -21,8 +21,6 @@ export default function Simulator() {
   const [installments, setInstallments] = useState('');
   const [result, setResult] = useState(null);
 
-  const isFilled = amount && rate && installments;
-
   const formatCurrency = (value) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -30,47 +28,50 @@ export default function Simulator() {
     }).format(value || 0);
 
   useEffect(() => {
-    if (!isFilled) return;
+    if (!amount || !rate || !installments) {
+      setResult(null);
+      return;
+    }
 
-    const timeout = setTimeout(() => {
-      simulate();
+    const timeout = setTimeout(async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/simulate-loan`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: Number(amount),
+            rate: Number(rate),
+            installments: Number(installments),
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Erro na requisição');
+        }
+
+        const data = await res.json();
+        setResult(data);
+      } catch (error) {
+        console.error('Erro ao simular:', error);
+        setResult(null);
+      } finally {
+        setLoading(false);
+      }
     }, 400);
 
     return () => clearTimeout(timeout);
   }, [amount, rate, installments]);
-
-  const simulate = async () => {
-    try {
-      setLoading(true);
-
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/simulate-loan`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Number(amount),
-          rate: Number(rate),
-          installments: Number(installments),
-        }),
-      });
-
-      if (!res.ok) throw new Error('Erro na requisição');
-
-      const data = await res.json();
-      setResult(data);
-    } catch (error) {
-      console.error('Erro ao simular:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const resetSimulation = () => {
     setAmount('');
     setRate('');
     setInstallments('');
     setResult(null);
+    setLoading(false);
   };
 
   const handleCreateLoan = () => {
@@ -88,14 +89,14 @@ export default function Simulator() {
   const exampleTotal = exampleAmount + (exampleAmount * exampleRate) / 100;
   const exampleInstallment = exampleTotal / exampleInstallments;
 
-if (loading) {
+  if (loading && !result) {
     return (
-      <AppShell 
-       title="Simule seus empréstimos com cálculo automático"
-    headerVariant="premium"
-    headerIcon={Calculator}
-    headerBadge="Simulação financeira"
-    >
+      <AppShell
+        title="Simule seus empréstimos com cálculo automático"
+        headerVariant="premium"
+        headerIcon={Calculator}
+        headerBadge="Simulação financeira"
+      >
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
         </div>
@@ -104,15 +105,13 @@ if (loading) {
   }
 
   return (
-  <AppShell
-    title="Simule seus empréstimos com cálculo automático"
-    headerVariant="premium"
-    headerIcon={Calculator}
-    headerBadge="Simulação financeira"
-  >
-    <div className="space-y-8 lg:space-y-10">
-      
-        
+    <AppShell
+      title="Simule seus empréstimos com cálculo automático"
+      headerVariant="premium"
+      headerIcon={Calculator}
+      headerBadge="Simulação financeira"
+    >
+      <div className="space-y-8 lg:space-y-10">
         <div className="mx-auto max-w-5xl">
           <div className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/10">
             <div className="border-b border-neutral-800 bg-gradient-to-r from-blue-600/10 via-indigo-500/5 to-transparent p-5 sm:p-6">
@@ -132,7 +131,6 @@ if (loading) {
             </div>
 
             <div className="p-4 sm:p-6 lg:p-8">
-              {/* Inputs */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm text-neutral-300">Valor</label>
@@ -174,7 +172,6 @@ if (loading) {
                 </div>
               </div>
 
-              {/* Estado inicial */}
               {!result && !loading && (
                 <div className="mt-6 animate-fade-in">
                   <div className="space-y-4 rounded-2xl border border-neutral-700 bg-neutral-800 p-5 text-sm text-neutral-300">
@@ -208,14 +205,12 @@ if (loading) {
                 </div>
               )}
 
-              {/* Loading */}
-              {loading && (
+              {loading && result && (
                 <div className="mt-6 flex justify-center">
                   <div className="h-7 w-7 animate-spin rounded-full border-b-2 border-t-2 border-blue-500" />
                 </div>
               )}
 
-              {/* Resultado */}
               {result && !loading && (
                 <div className="mt-6 animate-fade-in">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
