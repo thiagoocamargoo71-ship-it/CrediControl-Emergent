@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { useNotifications } from '../context/NotificationContext';
@@ -188,7 +188,9 @@ const SidebarContent = ({
   );
 };
 
-const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
+const Sidebar = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -212,7 +214,7 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [mobileOpen, setMobileOpen]);
+  }, [mobileOpen]);
 
   const handleLogout = async () => {
     await logout();
@@ -271,7 +273,6 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
         `}
       </style>
 
-      {/* Botão mobile/tablet */}
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
@@ -281,7 +282,6 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Desktop */}
       <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[276px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.96),rgba(6,6,8,0.98))] backdrop-blur-2xl lg:flex">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-20 -top-16 h-56 w-56 rounded-full bg-sky-500/10 blur-[90px]" />
@@ -299,7 +299,6 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
         />
       </aside>
 
-      {/* Overlay mobile/tablet */}
       <div
         className={`fixed inset-0 z-40 bg-black/65 backdrop-blur-sm transition-all duration-300 lg:hidden ${
           mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
@@ -308,7 +307,6 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
         aria-hidden="true"
       />
 
-      {/* Drawer mobile/tablet */}
       <aside
         className={`fixed left-0 top-0 z-50 flex h-screen w-[88%] max-w-[360px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[72%] md:w-[52%] lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
