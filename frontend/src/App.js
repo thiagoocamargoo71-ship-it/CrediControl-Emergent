@@ -22,6 +22,11 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+if (!BACKEND_URL) {
+  throw new Error('REACT_APP_BACKEND_URL não está configurada.');
+}
+
 const API = `${BACKEND_URL}/api`;
 
 const NOTIFICATION_POPUP_SESSION_KEY = 'credicontrol_notifications_popup_shown';
