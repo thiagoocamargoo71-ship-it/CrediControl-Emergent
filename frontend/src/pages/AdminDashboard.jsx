@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API } from '../App';
 import Sidebar from '../components/Sidebar';
-import { 
-  Users, 
-  CreditCard, 
+import {
+  Users,
+  CreditCard,
   DollarSign
 } from 'lucide-react';
 
@@ -68,70 +68,83 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 overflow-x-hidden">
       <Sidebar />
-      
-      <main className="ml-64 p-8" data-testid="admin-dashboard">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-heading text-3xl font-bold text-neutral-50 tracking-tight">
-            Painel Administrativo
-          </h1>
-          <p className="text-neutral-400 mt-1">
-            Visão geral do sistema
-          </p>
-        </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <main
+        className="w-full px-4 pt-20 pb-6 sm:px-6 sm:pt-24 sm:pb-8 lg:ml-64 lg:px-8 lg:pt-8"
+        data-testid="admin-dashboard"
+      >
+        <div className="mx-auto w-full max-w-7xl">
+          {/* Header */}
+          <div className="mb-6 sm:mb-8 animate-fade-in">
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl lg:text-4xl">
+              Painel Administrativo
+            </h1>
+            <p className="mt-2 text-sm text-neutral-400 sm:text-base">
+              Visão geral do sistema
+            </p>
           </div>
-        ) : (
-          <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {statCards.map((card, index) => {
-                const Icon = card.icon;
-                return (
-                  <div
-                    key={card.title}
-                    className={`bg-neutral-900 border border-neutral-800 rounded-xl p-6 card-hover animate-fade-in-delay-${Math.min(index, 3)}`}
-                    data-testid={`admin-stat-card-${card.title.toLowerCase().replace(/\s/g, '-')}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">
-                          {card.title}
-                        </p>
-                        <p className="text-2xl font-mono font-bold text-neutral-50 mt-2">
-                          {card.value}
-                        </p>
-                        <p className="text-sm text-neutral-500 mt-1">
-                          {card.description}
-                        </p>
-                      </div>
-                      <div className={`p-3 rounded-lg border ${getColorClasses(card.color)}`}>
-                        <Icon className="h-5 w-5" strokeWidth={1.5} />
+
+          {loading ? (
+            <div className="flex min-h-[240px] items-center justify-center sm:min-h-[320px]">
+              <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-blue-500 sm:h-12 sm:w-12" />
+            </div>
+          ) : (
+            <>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+                {statCards.map((card, index) => {
+                  const Icon = card.icon;
+
+                  return (
+                    <div
+                      key={card.title}
+                      className={`rounded-xl border border-neutral-800 bg-neutral-900 p-4 sm:p-5 lg:p-6 card-hover animate-fade-in-delay-${Math.min(index, 3)} min-w-0`}
+                      data-testid={`admin-stat-card-${card.title.toLowerCase().replace(/\s/g, '-')}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 sm:text-xs">
+                            {card.title}
+                          </p>
+
+                          <p className="mt-2 break-words text-xl font-bold text-neutral-50 sm:text-2xl lg:text-3xl font-mono leading-tight">
+                            {card.value}
+                          </p>
+
+                          <p className="mt-2 text-sm text-neutral-500 sm:text-sm leading-relaxed">
+                            {card.description}
+                          </p>
+                        </div>
+
+                        <div
+                          className={`shrink-0 rounded-lg border p-2.5 sm:p-3 ${getColorClasses(card.color)}`}
+                        >
+                          <Icon className="h-5 w-5 sm:h-5 sm:w-5" strokeWidth={1.5} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            {/* Info Box */}
-            <div className="mt-8 bg-neutral-900 border border-neutral-800 rounded-xl p-6 animate-fade-in">
-              <h2 className="font-heading text-xl font-semibold text-neutral-50 mb-4">
-                Informações do Sistema
-              </h2>
-              <p className="text-neutral-400">
-                Como administrador, você pode gerenciar os usuários do sistema, visualizar estatísticas gerais 
-                e bloquear ou excluir usuários quando necessário. O painel de empréstimos e dados financeiros 
-                individuais são acessíveis apenas pelos próprios usuários.
-              </p>
-            </div>
-          </>
-        )}
+              {/* Info Box */}
+              <div className="mt-6 rounded-xl border border-neutral-800 bg-neutral-900 p-4 sm:mt-8 sm:p-6 animate-fade-in">
+                <h2 className="mb-3 font-heading text-lg font-semibold text-neutral-50 sm:mb-4 sm:text-xl">
+                  Informações do Sistema
+                </h2>
+
+                <p className="text-sm leading-relaxed text-neutral-400 sm:text-base">
+                  Como administrador, você pode gerenciar os usuários do sistema,
+                  visualizar estatísticas gerais e bloquear ou excluir usuários
+                  quando necessário. O painel de empréstimos e dados financeiros
+                  individuais são acessíveis apenas pelos próprios usuários.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
