@@ -50,8 +50,8 @@ export const formatApiErrorDetail = (detail) => {
   return String(detail);
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null); // null = carregando, false = não autenticado, objeto = autenticado
   const [loading, setLoading] = useState(true);
 
   const resetNotificationPopupSession = useCallback(() => {
@@ -59,9 +59,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = useCallback(async () => {
+    setLoading(true);
+
     try {
       const response = await axios.get(`${API}/auth/me`);
-      setUser(response.data);
+
+      if (response?.data && typeof response.data === 'object') {
+        setUser(response.data);
+      } else {
+        setUser(false);
+        resetNotificationPopupSession();
+      }
     } catch (error) {
       setUser(false);
       resetNotificationPopupSession();
@@ -76,22 +84,42 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     resetNotificationPopupSession();
+
     const response = await axios.post(`${API}/auth/login`, { email, password });
-    setUser(response.data);
+
+    if (response?.data && typeof response.data === 'object') {
+      setUser(response.data);
+    } else {
+      setUser(false);
+    }
+
     return response.data;
   };
 
   const register = async (name, email, password) => {
     resetNotificationPopupSession();
+
     const response = await axios.post(`${API}/auth/register`, { name, email, password });
-    setUser(response.data);
+
+    if (response?.data && typeof response.data === 'object') {
+      setUser(response.data);
+    } else {
+      setUser(false);
+    }
+
     return response.data;
   };
 
   const logout = async () => {
-    await axios.post(`${API}/auth/logout`);
-    setUser(false);
-    resetNotificationPopupSession();
+    try {
+      await axios.post(`${API}/auth/logout`);
+    } catch (error) {
+      // Mesmo que o backend falhe no logout, o front deve limpar a sessão local
+    } finally {
+      setUser(false);
+      setLoading(false);
+      resetNotificationPopupSession();
+    }
   };
 
   return (
@@ -113,9 +141,9 @@ const ProtectedUserRoute = ({ children }) => {
 
   if (loading) return <AuthLoadingScreen />;
 
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  if (user === false) {
+  return <Navigate to="/login" state={{ from: location }} replace />;
+}
 
   if (user.role !== 'user') {
     return <Navigate to="/admin" replace />;
@@ -130,9 +158,9 @@ const ProtectedAdminRoute = ({ children }) => {
 
   if (loading) return <AuthLoadingScreen />;
 
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  if (user === false) {
+  return <Navigate to="/login" state={{ from: location }} replace />;
+}
 
   if (user.role !== 'admin') {
     return <Navigate to="/home" replace />;
@@ -146,9 +174,9 @@ const PublicRoute = ({ children }) => {
 
   if (loading) return <AuthLoadingScreen />;
 
-  if (user) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/home'} replace />;
-  }
+  if (user && typeof user === 'object') {
+  return <Navigate to={user.role === 'admin' ? '/admin' : '/home'} replace />;
+}
 
   return children;
 };
