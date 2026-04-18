@@ -29,16 +29,16 @@ const SidebarContent = ({
 }) => {
   return (
     <>
-      <div className="relative shrink-0 border-b border-white/6 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="relative shrink-0 border-b border-white/6 px-3 py-3 sm:px-4 sm:py-4">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent)]" />
         <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-300/20 to-transparent" />
 
-        <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.018))] px-4 py-4 shadow-[0_16px_50px_rgba(0,0,0,0.30)] backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-[22px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.018))] px-3 py-3 shadow-[0_16px_50px_rgba(0,0,0,0.30)] backdrop-blur-xl sm:px-4 sm:py-4 sm:rounded-[26px]">
           <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl" />
           <div className="pointer-events-none absolute -left-8 bottom-0 h-20 w-20 rounded-full bg-blue-600/10 blur-3xl" />
 
           <div className="flex items-center gap-3">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/18 bg-gradient-to-br from-sky-400/18 via-blue-500/14 to-indigo-600/10 shadow-[0_0_40px_rgba(59,130,246,0.18)] sm:h-14 sm:w-14">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] border border-sky-400/18 bg-gradient-to-br from-sky-400/18 via-blue-500/14 to-indigo-600/10 shadow-[0_0_40px_rgba(59,130,246,0.18)] sm:h-12 sm:w-12 sm:rounded-[18px]">
               <div className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,rgba(255,255,255,0.09),transparent_55%)]" />
               <span className="relative text-xs font-bold tracking-[0.22em] text-sky-300 sm:text-sm">
                 CC
