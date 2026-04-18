@@ -57,8 +57,8 @@ const SidebarContent = ({
         </div>
       </div>
 
-      <nav className="sidebar-scroll relative min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-6">
-        <ul className="space-y-2 pb-4">
+      <nav className="sidebar-scroll relative min-h-0 flex-1 overflow-y-auto px-2.5 py-3 sm:px-3 sm:py-4">
+        <ul className="space-y-2 pb-3">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive =
@@ -73,7 +73,7 @@ const SidebarContent = ({
                 <Link
                   to={link.path}
                   onClick={onNavigate}
-                  className={`group relative flex items-center gap-3 overflow-hidden rounded-[22px] px-3 py-3 transition-all duration-300 ${
+                  className={`group relative flex items-center gap-2.5 overflow-hidden rounded-[18px] px-2.5 py-2.5 transition-all duration-300 sm:rounded-[22px] sm:px-3 sm:py-3 ${
                     isActive
                       ? 'border border-sky-400/18 bg-[linear-gradient(135deg,rgba(79,140,255,0.96),rgba(58,111,232,0.96))] text-white shadow-[0_14px_34px_rgba(59,130,246,0.24)]'
                       : hasNotificationBadge
@@ -89,7 +89,7 @@ const SidebarContent = ({
                   )}
 
                   <div
-                    className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 sm:h-11 sm:w-11 ${
+                    className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 sm:h-10 sm:w-10 sm:rounded-2xl ${
                       isActive
                         ? 'border-white/10 bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]'
                         : hasNotificationBadge
@@ -158,12 +158,14 @@ const SidebarContent = ({
         </ul>
       </nav>
 
-      <div className="shrink-0 border-t border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.88),rgba(6,6,8,0.96))] p-3 pb-5 sm:p-4 sm:pb-6">
-        <div className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-2 shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+      <div
+        className="shrink-0 border-t border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.88),rgba(6,6,8,0.96))] p-2.5 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:p-3"
+      >
+        <div className="rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-2 shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
           <Button
             onClick={handleLogout}
             className="
-              relative h-11 w-full gap-3 rounded-[20px] px-4
+              relative h-10 w-full gap-2.5 rounded-[18px] px-3.5
               border border-sky-400/20
               bg-gradient-to-b from-[#4F8CFF] to-[#3A6FE8]
               text-white font-medium tracking-tight
@@ -177,7 +179,7 @@ const SidebarContent = ({
             "
             data-testid="logout-button"
           >
-            <div className="pointer-events-none absolute inset-0 rounded-[20px] bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_46%)]" />
+            <div className="pointer-events-none absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_46%)]" />
             <LogOut className="relative h-4 w-4 opacity-90" strokeWidth={1.9} />
             <span className="relative">Sair</span>
           </Button>
@@ -264,6 +266,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
           .sidebar-scroll {
             scrollbar-width: thin;
             scrollbar-color: rgba(82, 82, 91, 0.7) transparent;
+            -webkit-overflow-scrolling: touch;
           }
 
           .sidebar-scroll::-webkit-scrollbar {
@@ -322,7 +325,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
       />
 
       <aside
-        className={`fixed left-0 top-0 z-[100] flex h-screen w-[88%] max-w-[360px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[72%] md:w-[52%] lg:hidden ${
+        className={`fixed left-0 top-0 z-[100] flex h-[100dvh] w-[84%] max-w-[330px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[72%] md:w-[52%] lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-hidden={!mobileOpen}
