@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { useNotifications } from '../context/NotificationContext';
@@ -188,13 +188,20 @@ const SidebarContent = ({
   );
 };
 
-const Sidebar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSetMobileOpen }) => {
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { count: notificationCount } = useNotifications();
+
+  const isControlled =
+    typeof controlledMobileOpen === 'boolean' &&
+    typeof controlledSetMobileOpen === 'function';
+
+  const mobileOpen = isControlled ? controlledMobileOpen : internalMobileOpen;
+  const setMobileOpen = isControlled ? controlledSetMobileOpen : setInternalMobileOpen;
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -214,7 +221,7 @@ const Sidebar = () => {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [mobileOpen]);
+  }, [mobileOpen, setMobileOpen]);
 
   const handleLogout = async () => {
     await logout();
@@ -226,22 +233,28 @@ const Sidebar = () => {
     setMobileOpen(false);
   };
 
-  const userLinks = [
-    { path: '/home', label: 'Início', icon: HomeIcon },
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/customers', label: 'Clientes', icon: Users },
-    { path: '/loans', label: 'Empréstimos', icon: Wallet },
-    { path: '/installments', label: 'Parcelas', icon: Receipt },
-    { path: '/reports', label: 'Relatórios', icon: BarChart3 },
-    { path: '/simulator', label: 'Simulador', icon: Calculator },
-    { path: '/notifications', label: 'Notificações', icon: BellRing },
-    { path: '/settings', label: 'Configurações', icon: Settings },
-  ];
+  const userLinks = useMemo(
+    () => [
+      { path: '/home', label: 'Início', icon: HomeIcon },
+      { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/customers', label: 'Clientes', icon: Users },
+      { path: '/loans', label: 'Empréstimos', icon: Wallet },
+      { path: '/installments', label: 'Parcelas', icon: Receipt },
+      { path: '/reports', label: 'Relatórios', icon: BarChart3 },
+      { path: '/simulator', label: 'Simulador', icon: Calculator },
+      { path: '/notifications', label: 'Notificações', icon: BellRing },
+      { path: '/settings', label: 'Configurações', icon: Settings },
+    ],
+    []
+  );
 
-  const adminLinks = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/users', label: 'Usuários', icon: Users },
-  ];
+  const adminLinks = useMemo(
+    () => [
+      { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/admin/users', label: 'Usuários', icon: Users },
+    ],
+    []
+  );
 
   const links = user?.role === 'admin' ? adminLinks : userLinks;
 
@@ -273,14 +286,16 @@ const Sidebar = () => {
         `}
       </style>
 
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-neutral-900/85 text-neutral-100 shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-200 hover:border-neutral-700 hover:bg-neutral-800 lg:hidden"
-        aria-label="Abrir menu"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
+      {!isControlled && (
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="fixed left-4 top-4 z-[90] flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-neutral-900/85 text-neutral-100 shadow-[0_10px_28px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-200 hover:border-neutral-700 hover:bg-neutral-800 lg:hidden"
+          aria-label="Abrir menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
 
       <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[276px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.96),rgba(6,6,8,0.98))] backdrop-blur-2xl lg:flex">
         <div className="pointer-events-none absolute inset-0">
@@ -300,7 +315,7 @@ const Sidebar = () => {
       </aside>
 
       <div
-        className={`fixed inset-0 z-40 bg-black/65 backdrop-blur-sm transition-all duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[95] bg-black/65 backdrop-blur-sm transition-all duration-300 lg:hidden ${
           mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setMobileOpen(false)}
@@ -308,7 +323,7 @@ const Sidebar = () => {
       />
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[88%] max-w-[360px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[72%] md:w-[52%] lg:hidden ${
+        className={`fixed left-0 top-0 z-[100] flex h-screen w-[88%] max-w-[360px] flex-col overflow-hidden border-r border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.97),rgba(6,6,8,0.99))] backdrop-blur-2xl transition-transform duration-300 sm:w-[72%] md:w-[52%] lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-hidden={!mobileOpen}
