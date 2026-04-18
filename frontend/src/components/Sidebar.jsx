@@ -57,7 +57,7 @@ const SidebarContent = ({
         </div>
       </div>
 
-      <nav className="sidebar-scroll relative min-h-0 flex-1 overflow-y-auto px-3 py-4">
+      <nav className="sidebar-scroll relative min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-6">
         <ul className="space-y-2 pb-4">
           {links.map((link) => {
             const Icon = link.icon;
@@ -80,7 +80,6 @@ const SidebarContent = ({
                         ? 'border border-amber-500/12 bg-[linear-gradient(180deg,rgba(245,158,11,0.06),rgba(255,255,255,0.01))] text-neutral-200 hover:border-amber-500/20 hover:bg-[linear-gradient(180deg,rgba(245,158,11,0.09),rgba(255,255,255,0.02))] hover:text-white'
                         : 'border border-transparent bg-transparent text-neutral-400 hover:border-white/6 hover:bg-white/[0.03] hover:text-neutral-50'
                   }`}
-                  data-testid={`nav-${link.label.toLowerCase()}`}
                 >
                   {isActive && (
                     <>
@@ -159,7 +158,7 @@ const SidebarContent = ({
         </ul>
       </nav>
 
-      <div className="shrink-0 p-3 sm:p-4">
+      <div className="shrink-0 border-t border-white/6 bg-[linear-gradient(180deg,rgba(10,10,10,0.88),rgba(6,6,8,0.96))] p-3 pb-5 sm:p-4 sm:pb-6">
         <div className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-2 shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
           <Button
             onClick={handleLogout}
