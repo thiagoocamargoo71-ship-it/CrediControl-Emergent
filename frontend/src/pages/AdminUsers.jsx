@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { API, formatApiErrorDetail } from '../App';
 import Sidebar from '../components/Sidebar';
@@ -34,6 +34,12 @@ import {
   Edit2,
   Eye,
   EyeOff,
+  Shield,
+  Users,
+  UserCog,
+  Sparkles,
+  Crown,
+  ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -50,10 +56,12 @@ const AdminUsers = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    role: 'user',
   });
 
   useEffect(() => {
@@ -71,13 +79,26 @@ const AdminUsers = () => {
     }
   };
 
+  const stats = useMemo(() => {
+    const total = users.length;
+    const blocked = users.filter((user) => user.is_blocked).length;
+    const active = total - blocked;
+    const admins = users.filter((user) => (user.role || '').toLowerCase() === 'admin').length;
+
+    return { total, active, blocked, admins };
+  }, [users]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
       if (isEditing) {
-        const updateData = { name: formData.name, email: formData.email };
+        const updateData = {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+        };
 
         if (formData.password) {
           updateData.password = formData.password;
@@ -162,14 +183,20 @@ const AdminUsers = () => {
       setIsEditing(true);
       setSelectedUser(user);
       setFormData({
-        name: user.name,
-        email: user.email,
+        name: user.name || '',
+        email: user.email || '',
         password: '',
+        role: user.role || 'user',
       });
     } else {
       setIsEditing(false);
       setSelectedUser(null);
-      setFormData({ name: '', email: '', password: '' });
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+      });
     }
 
     setShowPassword(false);
@@ -180,7 +207,12 @@ const AdminUsers = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
     setIsEditing(false);
-    setFormData({ name: '', email: '', password: '' });
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: 'user',
+    });
     setShowPassword(false);
   };
 
@@ -195,11 +227,76 @@ const AdminUsers = () => {
     return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(term) ||
+      user.email.toLowerCase().includes(term) ||
+      (user.role || '').toLowerCase().includes(term)
+    );
+  });
+
+  const getRoleBadge = (role) => {
+    if ((role || '').toLowerCase() === 'admin') {
+      return (
+        <Badge className="border border-violet-500/20 bg-violet-500/10 font-medium text-violet-300">
+          <Crown className="mr-1 h-3 w-3" />
+          Administrador
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="border border-sky-500/20 bg-sky-500/10 font-medium text-sky-300">
+        <User className="mr-1 h-3 w-3" />
+        Usuário
+      </Badge>
+    );
+  };
+
+  const getStatusBadge = (isBlocked) => {
+    return isBlocked ? (
+      <Badge className="border border-rose-500/20 bg-rose-500/10 font-medium text-rose-400">
+        Bloqueado
+      </Badge>
+    ) : (
+      <Badge className="border border-emerald-500/20 bg-emerald-500/10 font-medium text-emerald-400">
+        Ativo
+      </Badge>
+    );
+  };
+
+  const PremiumStatCard = ({ title, value, description, icon: Icon, accent = 'blue' }) => {
+    const accents = {
+      blue: 'from-blue-500/20 via-blue-500/8 to-transparent border-blue-500/10 text-blue-400',
+      violet:
+        'from-violet-500/20 via-violet-500/8 to-transparent border-violet-500/10 text-violet-300',
+      emerald:
+        'from-emerald-500/20 via-emerald-500/8 to-transparent border-emerald-500/10 text-emerald-400',
+      rose: 'from-rose-500/20 via-rose-500/8 to-transparent border-rose-500/10 text-rose-400',
+    };
+
+    return (
+      <div className="group relative overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.34)]">
+        <div className={`absolute inset-0 bg-gradient-to-br ${accents[accent]} opacity-100`} />
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              {title}
+            </p>
+            <p className="mt-3 text-[28px] font-bold leading-none tracking-tight text-white">
+              {value}
+            </p>
+            <p className="mt-3 text-sm leading-5 text-neutral-400">{description}</p>
+          </div>
+
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm">
+            <Icon className={`h-5 w-5 ${accents[accent].split(' ').slice(-1)[0]}`} strokeWidth={1.8} />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-neutral-950">
@@ -216,60 +313,117 @@ const AdminUsers = () => {
       >
         <div className="mx-auto w-full max-w-7xl">
           <div className="space-y-6 lg:space-y-8">
-            {/* Header */}
-            <div className="animate-fade-in">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <h1 className="font-heading text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl lg:text-4xl">
-                    Gestão de Usuários
+            <section className="relative overflow-hidden rounded-[32px] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(139,92,246,0.12),transparent_24%),linear-gradient(180deg,rgba(14,14,20,0.98)_0%,rgba(8,8,12,1)_100%)] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.38)] sm:p-7">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_20%)]" />
+
+              <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-3xl">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
+                    <Shield className="h-3.5 w-3.5" />
+                    Admin Control
+                  </div>
+
+                  <h1 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+                    Gestão Premium de Usuários
                   </h1>
-                  <p className="mt-2 text-sm text-neutral-400 sm:text-base">
-                    Crie, edite e gerencie os usuários do sistema
+
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400 sm:text-base">
+                    Gerencie acessos, perfis e segurança da plataforma com uma
+                    visão administrativa mais sofisticada, distinta da área padrão
+                    do usuário final.
                   </p>
                 </div>
 
-                <Button
-                  onClick={() => openModal()}
-                  className="h-11 w-full gap-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
-                  data-testid="add-user-button"
-                >
-                  <Plus className="h-4 w-4" />
-                  Novo Usuário
-                </Button>
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                  <Button
+                    onClick={() => openModal()}
+                    className="h-11 gap-2 rounded-2xl border border-blue-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-5 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
+                    data-testid="add-user-button"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Novo Usuário
+                  </Button>
+                </div>
               </div>
-            </div>
+            </section>
 
-            {/* Search */}
-            <div className="relative w-full animate-fade-in sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
-              <Input
-                type="text"
-                placeholder="Buscar por nome ou email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-11 rounded-xl border-neutral-800 bg-neutral-900 pl-10 text-neutral-50 placeholder:text-neutral-600"
-                data-testid="search-users-input"
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
+              <PremiumStatCard
+                title="Total de contas"
+                value={stats.total}
+                description="Todos os usuários cadastrados na base."
+                icon={Users}
+                accent="blue"
               />
-            </div>
+              <PremiumStatCard
+                title="Usuários ativos"
+                value={stats.active}
+                description="Contas liberadas para acesso ao sistema."
+                icon={Sparkles}
+                accent="emerald"
+              />
+              <PremiumStatCard
+                title="Administradores"
+                value={stats.admins}
+                description="Perfis com privilégios administrativos."
+                icon={UserCog}
+                accent="violet"
+              />
+              <PremiumStatCard
+                title="Contas bloqueadas"
+                value={stats.blocked}
+                description="Usuários temporariamente impedidos de acessar."
+                icon={Lock}
+                accent="rose"
+              />
+            </section>
+
+            <section className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,18,24,0.96)_0%,rgba(10,10,14,0.98)_100%)] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight text-white">
+                    Base de usuários
+                  </h2>
+                  <p className="mt-1 text-sm text-neutral-400">
+                    Consulte, filtre e execute ações administrativas com segurança.
+                  </p>
+                </div>
+
+                <div className="relative w-full sm:max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar por nome, email ou perfil..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-12 rounded-2xl border-white/8 bg-black/30 pl-10 text-neutral-50 placeholder:text-neutral-600"
+                    data-testid="search-users-input"
+                  />
+                </div>
+              </div>
+            </section>
 
             {loading ? (
               <div className="flex min-h-[240px] items-center justify-center sm:min-h-[320px]">
-                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-blue-500 sm:h-12 sm:w-12" />
+                <div className="relative h-14 w-14">
+                  <div className="absolute inset-0 animate-spin rounded-full border-2 border-white/10 border-t-blue-500" />
+                  <div className="absolute inset-2 rounded-full border border-blue-500/20 bg-blue-500/5" />
+                </div>
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="animate-fade-in rounded-2xl border border-neutral-800 bg-neutral-900 p-8 text-center sm:p-12">
+              <div className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,18,24,0.96)_0%,rgba(10,10,14,0.98)_100%)] p-8 text-center shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:p-12">
                 <User className="mx-auto mb-4 h-12 w-12 text-neutral-600" />
                 <h3 className="mb-2 text-lg font-medium text-neutral-50">
                   {searchTerm ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado'}
                 </h3>
                 <p className="mb-6 text-sm text-neutral-500 sm:text-base">
-                  {searchTerm ? 'Tente outra busca' : 'Comece adicionando o primeiro usuário'}
+                  {searchTerm ? 'Tente outro termo de busca.' : 'Comece criando o primeiro usuário da plataforma.'}
                 </p>
 
                 {!searchTerm && (
                   <Button
                     onClick={() => openModal()}
-                    className="h-11 w-full gap-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+                    className="h-11 w-full gap-2 rounded-2xl border border-blue-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] sm:w-auto"
                   >
                     <Plus className="h-4 w-4" />
                     Novo Usuário
@@ -278,25 +432,27 @@ const AdminUsers = () => {
               </div>
             ) : (
               <>
-                {/* Desktop / Tablet large table */}
-                <div className="hidden animate-fade-in overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 xl:block">
+                <div className="hidden overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,18,24,0.96)_0%,rgba(10,10,14,0.98)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] xl:block">
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
                       <thead>
-                        <tr className="border-b border-neutral-800">
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        <tr className="border-b border-white/6 bg-white/[0.02]">
+                          <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                             Usuário
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                          <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                             Email
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                          <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                            Perfil
+                          </th>
+                          <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                             Status
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                          <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                             Cadastro
                           </th>
-                          <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                          <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                             Ações
                           </th>
                         </tr>
@@ -305,50 +461,53 @@ const AdminUsers = () => {
                         {filteredUsers.map((user) => (
                           <tr
                             key={user.id}
-                            className="border-b border-neutral-800/50 transition-colors hover:bg-neutral-900/80"
+                            className="border-b border-white/6 transition-colors hover:bg-white/[0.02]"
                             data-testid={`user-row-${user.id}`}
                           >
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-5">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-500/20 bg-blue-600/10">
-                                  <span className="font-medium text-blue-500">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/10">
+                                  <span className="font-semibold text-blue-400">
                                     {user.name.charAt(0).toUpperCase()}
                                   </span>
                                 </div>
-                                <span className="font-medium text-neutral-50">{user.name}</span>
+                                <div className="min-w-0">
+                                  <p className="truncate font-medium text-neutral-50">
+                                    {user.name}
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-neutral-500">
+                                    ID: {user.id}
+                                  </p>
+                                </div>
                               </div>
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-5">
                               <div className="flex items-center gap-2 text-neutral-300">
                                 <Mail className="h-4 w-4 shrink-0 text-neutral-500" />
                                 <span className="break-all">{user.email}</span>
                               </div>
                             </td>
 
-                            <td className="px-6 py-4">
-                              {user.is_blocked ? (
-                                <Badge className="border border-rose-500/20 bg-rose-500/10 font-medium text-rose-400">
-                                  Bloqueado
-                                </Badge>
-                              ) : (
-                                <Badge className="border border-emerald-500/20 bg-emerald-500/10 font-medium text-emerald-400">
-                                  Ativo
-                                </Badge>
-                              )}
+                            <td className="px-6 py-5">
+                              {getRoleBadge(user.role)}
                             </td>
 
-                            <td className="px-6 py-4 font-mono text-sm text-neutral-400 whitespace-nowrap">
+                            <td className="px-6 py-5">
+                              {getStatusBadge(user.is_blocked)}
+                            </td>
+
+                            <td className="px-6 py-5 font-mono text-sm whitespace-nowrap text-neutral-400">
                               {formatDate(user.created_at)}
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-5">
                               <div className="flex items-center justify-end gap-2">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => openViewModal(user)}
-                                  className="text-neutral-400 hover:bg-blue-500/10 hover:text-blue-500"
+                                  className="rounded-xl text-neutral-400 hover:bg-blue-500/10 hover:text-blue-400"
                                   data-testid={`view-user-${user.id}`}
                                   title="Ver detalhes"
                                 >
@@ -359,7 +518,7 @@ const AdminUsers = () => {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => openModal(user)}
-                                  className="text-neutral-400 hover:bg-neutral-800 hover:text-neutral-50"
+                                  className="rounded-xl text-neutral-400 hover:bg-white/10 hover:text-white"
                                   data-testid={`edit-user-${user.id}`}
                                   title="Editar"
                                 >
@@ -371,7 +530,7 @@ const AdminUsers = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => openDialog(user, 'unblock')}
-                                    className="text-neutral-400 hover:bg-emerald-500/10 hover:text-emerald-500"
+                                    className="rounded-xl text-neutral-400 hover:bg-emerald-500/10 hover:text-emerald-400"
                                     data-testid={`unblock-user-${user.id}`}
                                     title="Desbloquear"
                                   >
@@ -382,7 +541,7 @@ const AdminUsers = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => openDialog(user, 'block')}
-                                    className="text-neutral-400 hover:bg-amber-500/10 hover:text-amber-500"
+                                    className="rounded-xl text-neutral-400 hover:bg-amber-500/10 hover:text-amber-400"
                                     data-testid={`block-user-${user.id}`}
                                     title="Bloquear"
                                   >
@@ -394,7 +553,7 @@ const AdminUsers = () => {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => openDialog(user, 'delete')}
-                                  className="text-neutral-400 hover:bg-rose-500/10 hover:text-rose-500"
+                                  className="rounded-xl text-neutral-400 hover:bg-rose-500/10 hover:text-rose-400"
                                   data-testid={`delete-user-${user.id}`}
                                   title="Excluir"
                                 >
@@ -409,23 +568,22 @@ const AdminUsers = () => {
                   </div>
                 </div>
 
-                {/* Mobile / Tablet cards */}
-                <div className="grid grid-cols-1 gap-4 animate-fade-in xl:hidden">
+                <div className="grid grid-cols-1 gap-4 xl:hidden">
                   {filteredUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 sm:p-5"
+                      className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(18,18,24,0.96)_0%,rgba(10,10,14,0.98)_100%)] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.24)] sm:p-5"
                       data-testid={`user-row-${user.id}`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-600/10">
-                          <span className="font-medium text-blue-500">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/10">
+                          <span className="font-semibold text-blue-400">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
                               <p className="break-words font-medium text-neutral-50">
                                 {user.name}
@@ -436,21 +594,14 @@ const AdminUsers = () => {
                               </div>
                             </div>
 
-                            <div className="shrink-0">
-                              {user.is_blocked ? (
-                                <Badge className="border border-rose-500/20 bg-rose-500/10 font-medium text-rose-400">
-                                  Bloqueado
-                                </Badge>
-                              ) : (
-                                <Badge className="border border-emerald-500/20 bg-emerald-500/10 font-medium text-emerald-400">
-                                  Ativo
-                                </Badge>
-                              )}
+                            <div className="flex flex-wrap gap-2">
+                              {getRoleBadge(user.role)}
+                              {getStatusBadge(user.is_blocked)}
                             </div>
                           </div>
 
-                          <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/70 p-3">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                          <div className="mt-4 rounded-2xl border border-white/6 bg-black/30 p-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                               Cadastro
                             </p>
                             <p className="mt-1 text-sm text-neutral-300">
@@ -458,11 +609,11 @@ const AdminUsers = () => {
                             </p>
                           </div>
 
-                          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                             <Button
                               variant="ghost"
                               onClick={() => openViewModal(user)}
-                              className="h-10 justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-neutral-300 hover:bg-blue-500/10 hover:text-blue-500"
+                              className="h-10 justify-center rounded-xl border border-white/6 bg-black/30 text-neutral-300 hover:bg-blue-500/10 hover:text-blue-400"
                               data-testid={`view-user-${user.id}`}
                               title="Ver detalhes"
                             >
@@ -472,7 +623,7 @@ const AdminUsers = () => {
                             <Button
                               variant="ghost"
                               onClick={() => openModal(user)}
-                              className="h-10 justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-neutral-300 hover:bg-neutral-800 hover:text-neutral-50"
+                              className="h-10 justify-center rounded-xl border border-white/6 bg-black/30 text-neutral-300 hover:bg-white/10 hover:text-white"
                               data-testid={`edit-user-${user.id}`}
                               title="Editar"
                             >
@@ -483,7 +634,7 @@ const AdminUsers = () => {
                               <Button
                                 variant="ghost"
                                 onClick={() => openDialog(user, 'unblock')}
-                                className="h-10 justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-neutral-300 hover:bg-emerald-500/10 hover:text-emerald-500"
+                                className="h-10 justify-center rounded-xl border border-white/6 bg-black/30 text-neutral-300 hover:bg-emerald-500/10 hover:text-emerald-400"
                                 data-testid={`unblock-user-${user.id}`}
                                 title="Desbloquear"
                               >
@@ -493,7 +644,7 @@ const AdminUsers = () => {
                               <Button
                                 variant="ghost"
                                 onClick={() => openDialog(user, 'block')}
-                                className="h-10 justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-neutral-300 hover:bg-amber-500/10 hover:text-amber-500"
+                                className="h-10 justify-center rounded-xl border border-white/6 bg-black/30 text-neutral-300 hover:bg-amber-500/10 hover:text-amber-400"
                                 data-testid={`block-user-${user.id}`}
                                 title="Bloquear"
                               >
@@ -504,14 +655,12 @@ const AdminUsers = () => {
                             <Button
                               variant="ghost"
                               onClick={() => openDialog(user, 'delete')}
-                              className="h-10 justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-neutral-300 hover:bg-rose-500/10 hover:text-rose-500"
+                              className="h-10 justify-center rounded-xl border border-white/6 bg-black/30 text-neutral-300 hover:bg-rose-500/10 hover:text-rose-400"
                               data-testid={`delete-user-${user.id}`}
                               title="Excluir"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
-
-                            <div className="col-span-2 sm:col-span-1" />
                           </div>
                         </div>
                       </div>
@@ -521,18 +670,39 @@ const AdminUsers = () => {
               </>
             )}
 
-            {/* Create/Edit User Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogContent className="max-w-[calc(100vw-2rem)] border-neutral-800 bg-neutral-900 text-neutral-50 sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle className="font-heading text-xl">
-                    {isEditing ? 'Editar Usuário' : 'Novo Usuário'}
-                  </DialogTitle>
-                </DialogHeader>
+              <DialogContent className="max-w-[calc(100vw-2rem)] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] p-0 text-neutral-50 shadow-[0_30px_100px_rgba(0,0,0,0.5)] sm:max-w-2xl">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(139,92,246,0.12),transparent_24%)]" />
 
-                <form onSubmit={handleSubmit}>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
+                  <div className="relative border-b border-white/6 px-6 py-5 sm:px-7">
+                    <DialogHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400">
+                            {isEditing ? <Edit2 className="h-5 w-5" /> : <UserCog className="h-5 w-5" />}
+                          </div>
+
+                          <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-violet-300">
+                              Admin Flow
+                            </div>
+                            <DialogTitle className="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                              {isEditing ? 'Editar Usuário' : 'Novo Usuário'}
+                            </DialogTitle>
+                            <p className="mt-2 text-sm text-neutral-400">
+                              Configure dados de acesso e defina o perfil de permissão do usuário.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </DialogHeader>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="px-6 py-6 sm:px-7">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="name" className="text-neutral-300">
                         Nome completo *
                       </Label>
@@ -545,14 +715,14 @@ const AdminUsers = () => {
                             setFormData({ ...formData, name: e.target.value })
                           }
                           placeholder="Nome do usuário"
-                          className="border-neutral-800 bg-neutral-950 pl-10 text-neutral-50"
+                          className="h-12 rounded-2xl border-white/8 bg-black/30 pl-10 text-neutral-50 placeholder:text-neutral-600"
                           required
                           data-testid="user-name-input"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="email" className="text-neutral-300">
                         Email *
                       </Label>
@@ -566,7 +736,7 @@ const AdminUsers = () => {
                             setFormData({ ...formData, email: e.target.value })
                           }
                           placeholder="email@exemplo.com"
-                          className="border-neutral-800 bg-neutral-950 pl-10 text-neutral-50"
+                          className="h-12 rounded-2xl border-white/8 bg-black/30 pl-10 text-neutral-50 placeholder:text-neutral-600"
                           required
                           data-testid="user-email-input"
                         />
@@ -587,7 +757,7 @@ const AdminUsers = () => {
                             setFormData({ ...formData, password: e.target.value })
                           }
                           placeholder={isEditing ? '••••••••' : 'Mínimo 6 caracteres'}
-                          className="border-neutral-800 bg-neutral-950 pl-10 pr-10 text-neutral-50"
+                          className="h-12 rounded-2xl border-white/8 bg-black/30 pl-10 pr-10 text-neutral-50 placeholder:text-neutral-600"
                           required={!isEditing}
                           minLength={isEditing && formData.password ? 6 : undefined}
                           data-testid="user-password-input"
@@ -595,7 +765,7 @@ const AdminUsers = () => {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 transition-colors hover:text-neutral-300"
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -605,21 +775,57 @@ const AdminUsers = () => {
                         </button>
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="role" className="text-neutral-300">
+                        Perfil de acesso *
+                      </Label>
+                      <div className="relative">
+                        <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                        <select
+                          id="role"
+                          value={formData.role}
+                          onChange={(e) =>
+                            setFormData({ ...formData, role: e.target.value })
+                          }
+                          className="h-12 w-full appearance-none rounded-2xl border border-white/8 bg-black/30 pl-10 pr-10 text-sm text-neutral-50 outline-none transition-colors focus:border-blue-500/40"
+                        >
+                          <option value="user" className="bg-neutral-950 text-white">
+                            Usuário
+                          </option>
+                          <option value="admin" className="bg-neutral-950 text-white">
+                            Administrador
+                          </option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                      </div>
+                    </div>
                   </div>
 
-                  <DialogFooter className="flex-col gap-2 sm:flex-row">
+                  <div className="mt-5 rounded-2xl border border-white/6 bg-black/30 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                      Resumo da permissão
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-neutral-400">
+                      {formData.role === 'admin'
+                        ? 'Administrador poderá acessar a área administrativa e realizar operações de gestão do sistema.'
+                        : 'Usuário terá acesso apenas às funcionalidades padrão da plataforma.'}
+                    </p>
+                  </div>
+
+                  <DialogFooter className="mt-6 flex-col gap-2 border-t border-white/6 pt-5 sm:flex-row">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={closeModal}
-                      className="w-full text-neutral-400 hover:text-neutral-50 sm:w-auto"
+                      className="h-11 w-full rounded-2xl border border-white/6 bg-white/[0.02] text-neutral-300 hover:bg-white/[0.06] hover:text-white sm:w-auto"
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
+                      className="h-11 w-full rounded-2xl border border-blue-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-5 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 sm:w-auto"
                       data-testid="save-user-button"
                     >
                       {submitting ? 'Salvando...' : 'Salvar'}
@@ -629,99 +835,98 @@ const AdminUsers = () => {
               </DialogContent>
             </Dialog>
 
-            {/* View User Modal */}
             <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-              <DialogContent className="max-w-[calc(100vw-2rem)] border-neutral-800 bg-neutral-900 text-neutral-50 sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle className="font-heading text-xl">
-                    Detalhes do Usuário
-                  </DialogTitle>
-                </DialogHeader>
+              <DialogContent className="max-w-[calc(100vw-2rem)] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] p-0 text-neutral-50 shadow-[0_30px_100px_rgba(0,0,0,0.5)] sm:max-w-xl">
+                <div className="border-b border-white/6 px-6 py-5 sm:px-7">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold tracking-tight text-white">
+                      Detalhes do Usuário
+                    </DialogTitle>
+                    <p className="mt-2 text-sm text-neutral-400">
+                      Visualização administrativa completa do perfil selecionado.
+                    </p>
+                  </DialogHeader>
+                </div>
 
                 {selectedUser && (
-                  <div className="space-y-4 py-4">
-                    <div className="flex items-center gap-4 border-b border-neutral-800 pb-4">
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-600/10 sm:h-16 sm:w-16">
-                        <span className="text-xl font-bold text-blue-500 sm:text-2xl">
+                  <div className="px-6 py-6 sm:px-7">
+                    <div className="flex items-center gap-4 border-b border-white/6 pb-5">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] border border-blue-500/20 bg-blue-600/10">
+                        <span className="text-2xl font-bold text-blue-400">
                           {selectedUser.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
 
                       <div className="min-w-0">
-                        <h3 className="break-words text-base font-semibold text-neutral-50 sm:text-lg">
+                        <h3 className="break-words text-lg font-semibold text-neutral-50">
                           {selectedUser.name}
                         </h3>
                         <p className="break-all text-sm text-neutral-400">
                           {selectedUser.email}
                         </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {getRoleBadge(selectedUser.role)}
+                          {getStatusBadge(selectedUser.is_blocked)}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/6 bg-black/30 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                           ID
                         </p>
-                        <p className="break-all font-mono text-sm text-neutral-300">
+                        <p className="mt-2 break-all font-mono text-sm text-neutral-300">
                           {selectedUser.id}
                         </p>
                       </div>
 
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                          Role
+                      <div className="rounded-2xl border border-white/6 bg-black/30 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                          Perfil
                         </p>
-                        <p className="text-neutral-300">{selectedUser.role}</p>
+                        <div className="mt-2">{getRoleBadge(selectedUser.role)}</div>
                       </div>
 
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      <div className="rounded-2xl border border-white/6 bg-black/30 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                           Status
                         </p>
-                        {selectedUser.is_blocked ? (
-                          <Badge className="border border-rose-500/20 bg-rose-500/10 font-medium text-rose-400">
-                            Bloqueado
-                          </Badge>
-                        ) : (
-                          <Badge className="border border-emerald-500/20 bg-emerald-500/10 font-medium text-emerald-400">
-                            Ativo
-                          </Badge>
-                        )}
+                        <div className="mt-2">{getStatusBadge(selectedUser.is_blocked)}</div>
                       </div>
 
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                      <div className="rounded-2xl border border-white/6 bg-black/30 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                           Cadastro
                         </p>
-                        <p className="text-sm text-neutral-300">
+                        <p className="mt-2 text-sm text-neutral-300">
                           {formatDate(selectedUser.created_at)}
                         </p>
                       </div>
                     </div>
+
+                    <DialogFooter className="mt-6 flex-col gap-2 border-t border-white/6 pt-5 sm:flex-row">
+                      <Button
+                        onClick={() => {
+                          setIsViewModalOpen(false);
+                          openModal(selectedUser);
+                        }}
+                        className="h-11 w-full gap-2 rounded-2xl border border-blue-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] sm:w-auto"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Editar Usuário
+                      </Button>
+                    </DialogFooter>
                   </div>
                 )}
-
-                <DialogFooter className="flex-col gap-2 sm:flex-row">
-                  <Button
-                    onClick={() => {
-                      setIsViewModalOpen(false);
-                      openModal(selectedUser);
-                    }}
-                    className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700 sm:w-auto"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    Editar Usuário
-                  </Button>
-                </DialogFooter>
               </DialogContent>
             </Dialog>
 
-            {/* Block Dialog */}
             <AlertDialog
               open={dialogAction === 'block'}
               onOpenChange={() => setDialogAction(null)}
             >
-              <AlertDialogContent className="max-w-[calc(100vw-2rem)] border-neutral-800 bg-neutral-900 sm:max-w-md">
+              <AlertDialogContent className="max-w-[calc(100vw-2rem)] rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] sm:max-w-md">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-neutral-50">
                     Bloquear Usuário
@@ -732,12 +937,12 @@ const AdminUsers = () => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-                  <AlertDialogCancel className="w-full border-neutral-700 bg-neutral-800 text-neutral-50 hover:bg-neutral-700 sm:w-auto">
+                  <AlertDialogCancel className="w-full rounded-2xl border-white/8 bg-white/[0.03] text-neutral-50 hover:bg-white/[0.06] sm:w-auto">
                     Cancelar
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleBlock}
-                    className="w-full bg-amber-500 text-white hover:bg-amber-600 sm:w-auto"
+                    className="w-full rounded-2xl bg-amber-500 text-white hover:bg-amber-600 sm:w-auto"
                     data-testid="confirm-block-user"
                   >
                     Bloquear
@@ -746,12 +951,11 @@ const AdminUsers = () => {
               </AlertDialogContent>
             </AlertDialog>
 
-            {/* Unblock Dialog */}
             <AlertDialog
               open={dialogAction === 'unblock'}
               onOpenChange={() => setDialogAction(null)}
             >
-              <AlertDialogContent className="max-w-[calc(100vw-2rem)] border-neutral-800 bg-neutral-900 sm:max-w-md">
+              <AlertDialogContent className="max-w-[calc(100vw-2rem)] rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] sm:max-w-md">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-neutral-50">
                     Desbloquear Usuário
@@ -762,12 +966,12 @@ const AdminUsers = () => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-                  <AlertDialogCancel className="w-full border-neutral-700 bg-neutral-800 text-neutral-50 hover:bg-neutral-700 sm:w-auto">
+                  <AlertDialogCancel className="w-full rounded-2xl border-white/8 bg-white/[0.03] text-neutral-50 hover:bg-white/[0.06] sm:w-auto">
                     Cancelar
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleUnblock}
-                    className="w-full bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
+                    className="w-full rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 sm:w-auto"
                     data-testid="confirm-unblock-user"
                   >
                     Desbloquear
@@ -776,12 +980,11 @@ const AdminUsers = () => {
               </AlertDialogContent>
             </AlertDialog>
 
-            {/* Delete Dialog */}
             <AlertDialog
               open={dialogAction === 'delete'}
               onOpenChange={() => setDialogAction(null)}
             >
-              <AlertDialogContent className="max-w-[calc(100vw-2rem)] border-neutral-800 bg-neutral-900 sm:max-w-md">
+              <AlertDialogContent className="max-w-[calc(100vw-2rem)] rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.98)_0%,rgba(10,10,14,1)_100%)] sm:max-w-md">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-neutral-50">
                     Excluir Usuário
@@ -792,12 +995,12 @@ const AdminUsers = () => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
-                  <AlertDialogCancel className="w-full border-neutral-700 bg-neutral-800 text-neutral-50 hover:bg-neutral-700 sm:w-auto">
+                  <AlertDialogCancel className="w-full rounded-2xl border-white/8 bg-white/[0.03] text-neutral-50 hover:bg-white/[0.06] sm:w-auto">
                     Cancelar
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDelete}
-                    className="w-full bg-rose-500 text-white hover:bg-rose-600 sm:w-auto"
+                    className="w-full rounded-2xl bg-rose-500 text-white hover:bg-rose-600 sm:w-auto"
                     data-testid="confirm-delete-user"
                   >
                     Excluir
