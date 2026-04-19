@@ -291,16 +291,25 @@ function App() {
               />
 
               <Route
-                path="/admin/users"
+                path="/admin"
                 element={
                   <ProtectedAdminRoute>
-                    <AdminUsers />
+                   <Navigate to="/admin/users" replace />
                   </ProtectedAdminRoute>
                 }
               />
 
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedAdminRoute>
+                   <AdminUsers />
+                   </ProtectedAdminRoute>
+               }
+             />
+
+             <Route path="/" element={<Navigate to="/login" replace />} />
+             <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
 
             <Toaster position="top-right" richColors />
