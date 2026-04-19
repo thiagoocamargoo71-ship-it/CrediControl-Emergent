@@ -18,7 +18,6 @@ import LoanDetails from './pages/LoanDetails';
 import Installments from './pages/Installments';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
-import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -291,14 +290,6 @@ function App() {
                 }
               />
 
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedAdminRoute>
-                    <AdminDashboard />
-                  </ProtectedAdminRoute>
-                }
-              />
               <Route
                 path="/admin/users"
                 element={
