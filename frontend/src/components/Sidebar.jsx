@@ -250,8 +250,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
   );
 
   const adminLinks = useMemo(
-    () => [
-      { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    () => [      
       { path: '/admin/users', label: 'Usuários', icon: Users },
     ],
     []
