@@ -1374,9 +1374,9 @@ async def list_creditor_customers(creditor_id: str, user: dict = Depends(require
     for customer in customers:
         loans = await sb_many(
             "loans",
-            "id, amount, total_amount, interest_rate, number_of_installments",
+            "id, user_id, customer_id, amount, total_amount, interest_rate, number_of_installments",
             eq={"user_id": creditor_id, "customer_id": customer["id"]}
-        )
+)
 
         total_installments = 0
         overdue_installments = 0
