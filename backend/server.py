@@ -1354,9 +1354,9 @@ async def list_creditors(user: dict = Depends(require_admin)):
 
 
 
-    @admin_router.get("/creditors/{creditor_id}/customers")
-    async def list_creditor_customers(creditor_id: str, user: dict = Depends(require_admin)):
-        creditor = await sb_one("users", "id, role", eq={"id": creditor_id})
+@admin_router.get("/creditors/{creditor_id}/customers")
+async def list_creditor_customers(creditor_id: str, user: dict = Depends(require_admin)):
+    creditor = await sb_one("users", "id, role", eq={"id": creditor_id})
 
     if not creditor or creditor["role"] != "user":
         raise HTTPException(status_code=404, detail="Credor não encontrado")
