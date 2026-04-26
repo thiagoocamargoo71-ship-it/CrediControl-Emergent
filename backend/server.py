@@ -1466,9 +1466,9 @@ async def list_creditor_customer_installments(
 
     installments = await sb_many(
         "installments",
-        "*",
+        "id, loan_id, number, amount, updated_amount, due_date, status, paid_at",
         in_={"loan_id": loan_ids},
-        order="due_date"
+        order="number"
     )
 
     today = datetime.now(timezone.utc).date()
@@ -1476,34 +1476,36 @@ async def list_creditor_customer_installments(
 
     for inst in installments:
         loan = loan_map.get(inst["loan_id"])
+
         if not loan:
             continue
 
         due_date = parse_due_date(inst["due_date"])
         days_overdue = 0
-        current_status = inst["status"]
-        updated_amount = inst.get("updated_amount") or inst["amount"]
+        current_status = inst.get("status", "pending")
+        amount = inst.get("amount") or 0
+        updated_amount = inst.get("updated_amount") or amount
 
         if current_status != "paid" and due_date < today:
             days_overdue = (today - due_date).days
-            daily_rate = (loan["interest_rate"] or 0) / 30 / 100
-            updated_amount = inst["amount"] + (inst["amount"] * daily_rate * days_overdue)
+            daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+            updated_amount = amount + (amount * daily_rate * days_overdue)
             current_status = "overdue"
 
         result.append({
             "id": inst["id"],
             "loan_id": inst["loan_id"],
-            "number": inst["number"],
-            "total_installments": loan["number_of_installments"],
-            "amount": inst["amount"],
+            "number": inst.get("number"),
+            "total_installments": loan.get("number_of_installments"),
+            "amount": amount,
             "updated_amount": round(updated_amount, 2),
-            "due_date": inst["due_date"],
+            "due_date": inst.get("due_date"),
             "status": current_status,
             "paid_at": inst.get("paid_at"),
             "days_overdue": days_overdue,
-            "interest_rate": loan["interest_rate"],
-            "loan_amount": loan["amount"],
-            "loan_total": loan["total_amount"],
+            "interest_rate": loan.get("interest_rate"),
+            "loan_amount": loan.get("amount"),
+            "loan_total": loan.get("total_amount"),
         })
 
     return result
