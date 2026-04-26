@@ -1670,6 +1670,93 @@ async def list_admin_overdue_installments(user: dict = Depends(require_admin)):
     return overdue_rows
 
 
+@admin_router.post("/installments/{installment_id}/collection-message")
+async def create_collection_message(installment_id: str, user: dict = Depends(require_admin)):
+    installment = await sb_one(
+        "installments",
+        "id, loan_id, number, amount, updated_amount, due_date, status",
+        eq={"id": installment_id}
+    )
+
+    if not installment:
+        raise HTTPException(status_code=404, detail="Parcela não encontrada")
+
+    loan = await sb_one(
+        "loans",
+        "id, user_id, customer_id, amount, total_amount, interest_rate, number_of_installments",
+        eq={"id": installment["loan_id"]}
+    )
+
+    if not loan:
+        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+
+    customer = await sb_one(
+        "customers",
+        "id, name, phone",
+        eq={"id": loan["customer_id"]}
+    )
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+
+    creditor = await sb_one(
+        "users",
+        "id, name",
+        eq={"id": loan["user_id"]}
+    )
+
+    if not creditor:
+        raise HTTPException(status_code=404, detail="Credor não encontrado")
+
+    today = datetime.now(timezone.utc).date()
+    due_date = parse_due_date(installment["due_date"])
+
+    days_overdue = 0
+    amount = installment.get("amount") or 0
+    updated_amount = installment.get("updated_amount") or amount
+
+    if installment.get("status") != "paid" and due_date < today:
+        days_overdue = (today - due_date).days
+        daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+        updated_amount = amount + (amount * daily_rate * days_overdue)
+
+    message = f"""Olá, {customer.get("name")}. Aqui é a CrediControl, prestadora de serviço responsável pela administração de cobrança do credor {creditor.get("name")}.
+
+Identificamos uma parcela em atraso:
+
+Parcela: {installment.get("number")}/{loan.get("number_of_installments")}
+Vencimento: {installment.get("due_date")}
+Dias em atraso: {days_overdue}
+Valor atualizado: R$ {round(updated_amount, 2)}
+
+Por favor, entre em contato para regularização."""
+
+    payload = {
+        "installment_id": installment["id"],
+        "loan_id": loan["id"],
+        "customer_id": customer["id"],
+        "creditor_id": creditor["id"],
+        "customer_name": customer.get("name"),
+        "customer_phone": customer.get("phone"),
+        "creditor_name": creditor.get("name"),
+        "channel": "whatsapp",
+        "message": message,
+        "status": "created",
+    }
+
+    created = await sb_insert("collection_messages", payload)
+
+    phone = ''.join(filter(str.isdigit, customer.get("phone") or ""))
+
+    return {
+        "message_id": created["id"],
+        "installment_id": installment["id"],
+        "customer_phone": customer.get("phone"),
+        "message": message,
+        "whatsapp_url": f"https://wa.me/55{phone}?text={quote(message)}"
+    }
+
+
 @admin_router.get("/users/{user_id}")
 async def get_user(user_id: str, user: dict = Depends(require_admin)):
     u = await sb_one(
