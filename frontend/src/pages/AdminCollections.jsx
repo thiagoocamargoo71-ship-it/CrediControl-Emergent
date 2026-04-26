@@ -276,15 +276,29 @@ const AdminCollections = () => {
                   </div>
 
                   <div className="xl:text-right">
-                    <a
-                      href={buildWhatsAppUrl(row)}
-                      target="_blank"
-                      rel="noreferrer"
+                    
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await axios.post(
+                            `${API}/admin/installments/${row.installment_id}/collection-message`
+                          );
+
+                          const data = response.data;
+
+                          if (data?.whatsapp_url) {
+                            window.open(data.whatsapp_url, '_blank');
+                          }
+                        } catch (err) {
+                          console.error('Erro ao criar mensagem', err);
+                          alert('Erro ao gerar mensagem de cobrança');
+                        }
+                      }}
                       className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-700 px-4 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(16,185,129,0.25)] transition hover:scale-[1.01] hover:from-emerald-400 hover:to-emerald-600 xl:w-auto"
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
                       WhatsApp
-                    </a>
+                    </button>                    
                   </div>
                 </div>
               ))}
