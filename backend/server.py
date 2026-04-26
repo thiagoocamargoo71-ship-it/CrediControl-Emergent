@@ -205,25 +205,30 @@ async def sb_count(table: str, eq: Dict[str, Any] = None) -> int:
     return r.count or 0
 
 
-async def sb_insert(table: str, payload: dict):
+async def sb_insert(table: str, payload: Any):
     db = ensure_supabase()
 
     try:
         response = await db.table(table).insert(payload).execute()
     except Exception as e:
+        logger.exception(f"[sb_insert] Erro ao inserir em {table}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao inserir na tabela {table}: {str(e)}"
+            detail=f"Erro ao inserir registro na tabela {table}"
         )
 
-    # Supabase pode não retornar data mesmo com insert bem-sucedido
+    # Supabase pode não retornar data mesmo com insert bem-sucedido.
+    # Nesses casos, quem chamou a função deve buscar o registro por fallback seguro.
     if not response.data:
-        logger.warning(f"[sb_insert] Insert em {table} sem retorno de dados")
+        logger.warning(f"[sb_insert] Insert em {table} executado sem retorno de dados")
         return None
 
-    # Sempre retorna o primeiro registro (padrão do sistema)
-    return response.data[0]
+    # Quando o payload é uma lista, preserva retorno como lista.
+    # Quando é um dict, retorna apenas o primeiro registro para manter padrão do sistema.
+    if isinstance(payload, list):
+        return response.data
 
+    return response.data[0]
 
 async def sb_update(table: str, data: Dict[str, Any], eq: Dict[str, Any] = None):
     db = ensure_supabase()
@@ -425,7 +430,7 @@ async def register(data: UserRegister, response: Response):
 
     hashed = hash_password(data.password)
 
-    rows = await sb_insert("users", {
+    created_user = await sb_insert("users", {
         "name": data.name,
         "email": email,
         "password_hash": hashed,
@@ -434,7 +439,13 @@ async def register(data: UserRegister, response: Response):
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    user_id = rows[0]["id"]
+    if not created_user:
+        created_user = await sb_one("users", "*", eq={"email": email})
+
+    if not created_user:
+        raise HTTPException(status_code=500, detail="Usuário criado, mas não foi possível recuperar o registro")
+
+    user_id = created_user["id"]
     set_auth_cookies(
         response,
         create_access_token(user_id, email, "user"),
@@ -586,11 +597,10 @@ async def create_customer(data: CustomerCreate, user: dict = Depends(require_use
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    rows = await sb_insert("customers", payload)
+    customer = await sb_insert("customers", payload)
 
-    if rows:
-        return rows[0]
-
+    if customer:
+        return customer
     customer = await sb_one(
         "customers",
         "*",
@@ -753,11 +763,9 @@ async def create_loan(data: LoanCreate, user: dict = Depends(require_user)):
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    rows = await sb_insert("loans", loan_payload)
+    loan = await sb_insert("loans", loan_payload)
 
-    if rows:
-        loan = rows[0]
-    else:
+    if not loan:
         loan = await sb_one(
             "loans",
             "*",
@@ -1786,6 +1794,21 @@ Por favor, entre em contato para regularização."""
 
     created = await sb_insert("collection_messages", payload)
 
+    if not created:
+        created = await sb_one(
+            "collection_messages",
+            "*",
+            eq={
+                "installment_id": installment["id"],
+                "customer_id": customer["id"],
+                "creditor_id": creditor["id"],
+                "status": "created",
+            }
+        )
+
+    if not created:
+        raise HTTPException(status_code=500, detail="Mensagem criada, mas não foi possível recuperar o registro")
+
     phone = ''.join(filter(str.isdigit, customer.get("phone") or ""))
 
     return {
@@ -1849,7 +1872,7 @@ async def admin_create_user(data: AdminCreateUser, user: dict = Depends(require_
     if await sb_one("users", "id", eq={"email": email}):
         raise HTTPException(status_code=400, detail="Email já cadastrado")
 
-    rows = await sb_insert("users", {
+    u = await sb_insert("users", {
         "name": data.name,
         "email": email,
         "password_hash": hash_password(data.password),
@@ -1858,7 +1881,11 @@ async def admin_create_user(data: AdminCreateUser, user: dict = Depends(require_
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    u = rows[0]
+    if not u:
+        u = await sb_one("users", "*", eq={"email": email})
+
+    if not u:
+        raise HTTPException(status_code=500, detail="Usuário criado, mas não foi possível recuperar o registro")
     return {
         "id": u["id"],
         "name": u["name"],
@@ -1968,13 +1995,21 @@ app.include_router(api_router)
 # CORS
 # =========================
 
-cors_origins = [FRONTEND_URL, "http://localhost:3000"]
+cors_origins = list(dict.fromkeys([
+    FRONTEND_URL,
+    "https://credicontrol-emergent.vercel.app",
+    "https://credi-control-emergent.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+]))
+
 if "preview.emergentagent.com" in FRONTEND_URL:
     cors_origins.append(FRONTEND_URL.replace("https://", "http://"))
+    cors_origins = list(dict.fromkeys(cors_origins))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(dict.fromkeys(cors_origins)),
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
