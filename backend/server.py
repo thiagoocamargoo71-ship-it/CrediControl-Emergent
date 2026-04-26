@@ -1544,11 +1544,10 @@ async def get_admin_installment_details(installment_id: str, user: dict = Depend
     )
 
     payments = await sb_many(
-        "payments",
-        "id, installment_id, amount, payment_date, payment_method, notes, created_at",
-        eq={"installment_id": installment_id},
-        order="payment_date"
-    )
+    "payments",
+    "*",
+    eq={"installment_id": installment_id}
+)
 
     today = datetime.now(timezone.utc).date()
     due_date = parse_due_date(installment["due_date"])
