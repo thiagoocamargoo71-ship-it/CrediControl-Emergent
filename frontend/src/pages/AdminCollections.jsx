@@ -30,6 +30,45 @@ const formatDate = (value) => {
   return date.toLocaleDateString('pt-BR');
 };
 
+const formatDateTime = (value) => {
+  if (!value) return '-';
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleString('pt-BR');
+};
+
+const formatStatus = (status) => {
+  const map = {
+    created: 'Criada',
+    sent: 'Enviada',
+    visualized: 'Visualizada',
+    responded: 'Respondida',
+  };
+
+  return map[status] || status || 'Sem status';
+};
+
+const statusClassName = (status) => {
+  if (status === 'sent') {
+    return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300';
+  }
+
+  if (status === 'visualized') {
+    return 'border-blue-500/20 bg-blue-500/10 text-blue-300';
+  }
+
+  if (status === 'responded') {
+    return 'border-purple-500/20 bg-purple-500/10 text-purple-300';
+  }
+
+  return 'border-yellow-500/20 bg-yellow-500/10 text-yellow-300';
+};
+
 const onlyNumbers = (value) => String(value || '').replace(/\D/g, '');
 
 const buildWhatsAppUrl = (row) => {
@@ -55,6 +94,10 @@ const AdminCollections = () => {
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
 
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [timeline, setTimeline] = useState([]);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
+
   const loadOverdueInstallments = async () => {
     setLoading(true);
     setError('');
@@ -68,6 +111,31 @@ const AdminCollections = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openDetails = async (row) => {
+    setSelectedInstallment(row);
+    setTimeline([]);
+    setLoadingTimeline(true);
+
+    try {
+      const response = await axios.get(
+        `${API}/admin/installments/${row.installment_id}/collection-messages`
+      );
+
+      setTimeline(Array.isArray(response.data?.messages) ? response.data.messages : []);
+    } catch (err) {
+      console.error('Erro ao carregar histórico de cobranças', err);
+      setTimeline([]);
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  const closeDetails = () => {
+    setSelectedInstallment(null);
+    setTimeline([]);
+    setLoadingTimeline(false);
   };
 
   useEffect(() => {
@@ -212,7 +280,7 @@ const AdminCollections = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="hidden grid-cols-[1.3fr_1.2fr_1fr_0.7fr_0.9fr_0.8fr_1fr_0.9fr] px-4 text-xs uppercase tracking-[0.2em] text-neutral-600 xl:grid">
+              <div className="hidden grid-cols-[1.3fr_1.2fr_1fr_0.7fr_0.9fr_0.8fr_1fr_1.25fr] px-4 text-xs uppercase tracking-[0.2em] text-neutral-600 xl:grid">
                 <div>Credor</div>
                 <div>Cliente</div>
                 <div>Telefone</div>
@@ -226,7 +294,7 @@ const AdminCollections = () => {
               {filteredRows.map((row) => (
                 <div
                   key={row.installment_id}
-                  className="grid gap-4 rounded-[26px] border border-white/8 bg-black/25 p-4 text-sm text-neutral-200 shadow-[0_12px_40px_rgba(0,0,0,0.22)] transition hover:border-blue-400/25 hover:bg-white/[0.045] xl:grid-cols-[1.3fr_1.2fr_1fr_0.7fr_0.9fr_0.8fr_1fr_0.9fr] xl:items-center"
+                  className="grid gap-4 rounded-[26px] border border-white/8 bg-black/25 p-4 text-sm text-neutral-200 shadow-[0_12px_40px_rgba(0,0,0,0.22)] transition hover:border-blue-400/25 hover:bg-white/[0.045] xl:grid-cols-[1.3fr_1.2fr_1fr_0.7fr_0.9fr_0.8fr_1fr_1.25fr] xl:items-center"
                 >
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-neutral-600 xl:hidden">Credor</p>
@@ -275,9 +343,17 @@ const AdminCollections = () => {
                     </span>
                   </div>
 
-                  <div className="xl:text-right">
-                    
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end xl:text-right">
                     <button
+                      type="button"
+                      onClick={() => openDetails(row)}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-500/10 px-4 text-sm font-semibold text-blue-300 shadow-[0_16px_35px_rgba(59,130,246,0.12)] transition hover:scale-[1.01] hover:border-blue-400/40 hover:bg-blue-500/20 xl:w-auto"
+                    >
+                      Detalhes
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={async () => {
                         try {
                           const response = await axios.post(
@@ -289,7 +365,6 @@ const AdminCollections = () => {
                           if (data?.whatsapp_url) {
                             window.open(data.whatsapp_url, '_blank');
 
-                            // 🔥 NOVO: marcar como enviado
                             if (data?.message_id) {
                               await axios.post(
                                 `${API}/admin/collection-messages/${data.message_id}/mark-as-sent`
@@ -298,20 +373,232 @@ const AdminCollections = () => {
                           }
                         } catch (err) {
                           console.error('Erro ao criar mensagem', err);
-                          alert('Erro ao gerar mensagem de cobrança');
+
+                          const fallbackUrl = buildWhatsAppUrl(row);
+
+                          if (fallbackUrl) {
+                            window.open(fallbackUrl, '_blank');
+                          } else {
+                            alert('Erro ao gerar mensagem de cobrança');
+                          }
                         }
                       }}
                       className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-700 px-4 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(16,185,129,0.25)] transition hover:scale-[1.01] hover:from-emerald-400 hover:to-emerald-600 xl:w-auto"
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
                       WhatsApp
-                    </button>                    
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </section>
+
+        {selectedInstallment ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
+            <div className="relative max-h-[88vh] w-full max-w-4xl overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(20,20,26,0.98),rgba(7,7,10,0.98))] shadow-[0_30px_100px_rgba(0,0,0,0.65)]">
+              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-500/15 blur-3xl" />
+              <div className="absolute -bottom-24 left-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+
+              <div className="relative z-10 flex items-start justify-between gap-4 border-b border-white/10 p-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1 text-xs font-medium text-blue-300">
+                    <Sparkles className="h-4 w-4" />
+                    Timeline de cobrança
+                  </div>
+
+                  <h3 className="mt-3 text-2xl font-semibold text-white">
+                    {selectedInstallment.customer_name}
+                  </h3>
+
+                  <p className="mt-1 text-sm text-neutral-500">
+                    Parcela {selectedInstallment.number}/{selectedInstallment.total_installments} • Credor {selectedInstallment.creditor_name}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeDetails}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-neutral-400 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="relative z-10 max-h-[calc(88vh-110px)] overflow-y-auto p-6">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-neutral-600">Telefone</p>
+                    <p className="mt-2 text-sm font-semibold text-white">{selectedInstallment.customer_phone}</p>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-black/25 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-neutral-600">Vencimento</p>
+                    <p className="mt-2 text-sm font-semibold text-white">{formatDate(selectedInstallment.due_date)}</p>
+                  </div>
+
+                  <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-red-300/70">Atraso</p>
+                    <p className="mt-2 text-sm font-semibold text-red-300">{selectedInstallment.days_overdue} dias</p>
+                  </div>
+
+                  <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-emerald-300/70">Valor atualizado</p>
+                    <p className="mt-2 text-sm font-semibold text-emerald-300">
+                      {formatCurrency(selectedInstallment.updated_amount)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl border border-white/10 bg-black/25 p-5">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h4 className="text-base font-semibold text-white">Resumo do empréstimo</h4>
+                      <p className="mt-1 text-sm text-neutral-500">
+                        Informações relacionadas à parcela em atraso.
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-neutral-300">
+                      Parcela {selectedInstallment.number}/{selectedInstallment.total_installments}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-600">Valor original</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {formatCurrency(selectedInstallment.amount)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-600">Valor atualizado</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {formatCurrency(selectedInstallment.updated_amount)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-600">ID da parcela</p>
+                      <p className="mt-1 break-all text-xs font-medium text-neutral-400">
+                        {selectedInstallment.installment_id}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl border border-white/10 bg-black/25 p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-semibold text-white">Histórico de cobranças</h4>
+                      <p className="mt-1 text-sm text-neutral-500">
+                        Registros gerados para esta parcela.
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-neutral-400">
+                      {timeline.length} registro(s)
+                    </span>
+                  </div>
+
+                  {loadingTimeline ? (
+                    <div className="flex min-h-[160px] items-center justify-center rounded-3xl border border-white/8 bg-black/20 text-sm text-neutral-400">
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Carregando timeline...
+                    </div>
+                  ) : timeline.length === 0 ? (
+                    <div className="flex min-h-[160px] flex-col items-center justify-center rounded-3xl border border-white/8 bg-black/20 text-center">
+                      <AlertTriangle className="mb-3 h-8 w-8 text-neutral-600" />
+                      <p className="text-sm font-medium text-neutral-300">Nenhuma cobrança registrada ainda.</p>
+                      <p className="mt-1 text-xs text-neutral-600">
+                        Clique em WhatsApp para gerar o primeiro registro.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {timeline.map((message) => (
+                        <div
+                          key={message.id}
+                          className="rounded-3xl border border-white/10 bg-white/[0.035] p-4"
+                        >
+                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClassName(message.status)}`}>
+                                {formatStatus(message.status)}
+                              </span>
+
+                              <p className="mt-2 text-xs text-neutral-500">
+                                Criada em {formatDateTime(message.created_at)}
+                              </p>
+
+                              {message.sent_at ? (
+                                <p className="mt-1 text-xs text-emerald-300">
+                                  Enviada em {formatDateTime(message.sent_at)}
+                                </p>
+                              ) : null}
+                            </div>
+
+                            <div className="text-xs text-neutral-500">
+                              Canal: {message.channel || 'whatsapp'}
+                            </div>
+                          </div>
+
+                          <div className="mt-4 whitespace-pre-line rounded-2xl border border-white/8 bg-black/30 p-4 text-sm leading-6 text-neutral-300">
+                            {message.message}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={closeDetails}
+                    className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-sm font-semibold text-neutral-300 transition hover:bg-white/[0.08]"
+                  >
+                    Fechar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const response = await axios.post(
+                          `${API}/admin/installments/${selectedInstallment.installment_id}/collection-message`
+                        );
+
+                        const data = response.data;
+
+                        if (data?.whatsapp_url) {
+                          window.open(data.whatsapp_url, '_blank');
+
+                          if (data?.message_id) {
+                            await axios.post(
+                              `${API}/admin/collection-messages/${data.message_id}/mark-as-sent`
+                            );
+                          }
+
+                          await openDetails(selectedInstallment);
+                        }
+                      } catch (err) {
+                        console.error('Erro ao criar mensagem pelo modal', err);
+                        alert('Erro ao gerar mensagem de cobrança');
+                      }
+                    }}
+                    className="inline-flex h-11 items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-700 px-5 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(16,185,129,0.25)] transition hover:scale-[1.01] hover:from-emerald-400 hover:to-emerald-600"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Cobrar novamente
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );
