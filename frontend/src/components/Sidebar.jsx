@@ -16,6 +16,7 @@ import {
   Home as HomeIcon,
   X,
   Menu,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -252,6 +253,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
   const adminLinks = useMemo(
     () => [      
       { path: '/admin/users', label: 'Usuários', icon: Users },
+      { path: '/admin/collections', label: 'Cobranças', icon: MessageCircle },
     ],
     []
   );

@@ -5,6 +5,7 @@ import { Toaster } from './components/ui/sonner';
 import './App.css';
 import Simulator from './pages/Simulator';
 import Reports from './pages/Reports';
+import AdminCollections from './pages/AdminCollections';
 import { NotificationProvider } from './context/NotificationContext';
 
 // Pages
@@ -307,6 +308,16 @@ function App() {
                    </ProtectedAdminRoute>
                }
              />
+
+              <Route
+                path="/admin/collections"
+                element={
+                  <ProtectedAdminRoute>
+                   <AdminCollections />
+                   </ProtectedAdminRoute>
+               }
+             />
+
 
              <Route path="/" element={<Navigate to="/login" replace />} />
              <Route path="*" element={<Navigate to="/login" replace />} />
