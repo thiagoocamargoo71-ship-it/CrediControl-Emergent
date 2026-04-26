@@ -1511,6 +1511,72 @@ async def list_creditor_customer_installments(
     return result
 
 
+@admin_router.get("/installments/{installment_id}/details")
+async def get_admin_installment_details(installment_id: str, user: dict = Depends(require_admin)):
+    installment = await sb_one(
+        "installments",
+        "id, loan_id, number, amount, updated_amount, due_date, status, paid_at",
+        eq={"id": installment_id}
+    )
+
+    if not installment:
+        raise HTTPException(status_code=404, detail="Parcela não encontrada")
+
+    loan = await sb_one(
+        "loans",
+        "id, user_id, customer_id, amount, total_amount, interest_rate, number_of_installments, created_at",
+        eq={"id": installment["loan_id"]}
+    )
+
+    if not loan:
+        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+
+    customer = await sb_one(
+        "customers",
+        "id, name, phone, email, document, address, notes, created_at",
+        eq={"id": loan["customer_id"]}
+    )
+
+    creditor = await sb_one(
+        "users",
+        "id, name, email, is_blocked, created_at",
+        eq={"id": loan["user_id"]}
+    )
+
+    payments = await sb_many(
+        "payments",
+        "id, installment_id, amount, payment_date, payment_method, notes, created_at",
+        eq={"installment_id": installment_id},
+        order="payment_date"
+    )
+
+    today = datetime.now(timezone.utc).date()
+    due_date = parse_due_date(installment["due_date"])
+    days_overdue = 0
+    current_status = installment.get("status", "pending")
+    amount = installment.get("amount") or 0
+    updated_amount = installment.get("updated_amount") or amount
+
+    if current_status != "paid" and due_date < today:
+        days_overdue = (today - due_date).days
+        daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+        updated_amount = amount + (amount * daily_rate * days_overdue)
+        current_status = "overdue"
+
+    return {
+        "creditor": creditor,
+        "customer": customer,
+        "loan": loan,
+        "installment": {
+            **installment,
+            "status": current_status,
+            "days_overdue": days_overdue,
+            "updated_amount": round(updated_amount, 2),
+        },
+        "payments": payments,
+    }
+
+
 @admin_router.get("/users/{user_id}")
 async def get_user(user_id: str, user: dict = Depends(require_admin)):
     u = await sb_one(
