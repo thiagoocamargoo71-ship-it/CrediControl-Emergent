@@ -1827,6 +1827,35 @@ Por favor, entre em contato para regularização."""
     }
 
 
+@admin_router.post("/collection-messages/{message_id}/mark-as-sent")
+async def mark_collection_message_as_sent(
+    message_id: str,
+    user: dict = Depends(require_admin)
+):
+    message = await sb_one(
+        "collection_messages",
+        "id, status",
+        eq={"id": message_id}
+    )
+
+    if not message:
+        raise HTTPException(status_code=404, detail="Mensagem não encontrada")
+
+    if message["status"] != "created":
+        return {"message": "Mensagem já processada"}
+
+    await sb_update(
+        "collection_messages",
+        {
+            "status": "sent",
+            "sent_at": datetime.now(timezone.utc).isoformat()
+        },
+        eq={"id": message_id}
+    )
+
+    return {"message": "Cobrança marcada como enviada"}
+
+
 @admin_router.get("/users/{user_id}")
 async def get_user(user_id: str, user: dict = Depends(require_admin)):
     u = await sb_one(

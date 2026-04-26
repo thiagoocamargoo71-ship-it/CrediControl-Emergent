@@ -288,6 +288,13 @@ const AdminCollections = () => {
 
                           if (data?.whatsapp_url) {
                             window.open(data.whatsapp_url, '_blank');
+
+                            // 🔥 NOVO: marcar como enviado
+                            if (data?.message_id) {
+                              await axios.post(
+                                `${API}/admin/collection-messages/${data.message_id}/mark-as-sent`
+                              );
+                            }
                           }
                         } catch (err) {
                           console.error('Erro ao criar mensagem', err);
