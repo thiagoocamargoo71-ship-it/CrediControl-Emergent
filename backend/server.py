@@ -205,20 +205,23 @@ async def sb_count(table: str, eq: Dict[str, Any] = None) -> int:
     return r.count or 0
 
 
-async def sb_insert(table: str, doc: Any):
-    db = ensure_supabase()
-    r = await db.table(table).insert(doc).execute()
-    return r.data
-
 async def sb_insert(table: str, payload: dict):
-    response = await supabase.table(table).insert(payload).execute()
+    db = ensure_supabase()
 
-    if not response.data:
+    try:
+        response = await db.table(table).insert(payload).execute()
+    except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao inserir registro na tabela {table}"
+            detail=f"Erro ao inserir na tabela {table}: {str(e)}"
         )
 
+    # Supabase pode não retornar data mesmo com insert bem-sucedido
+    if not response.data:
+        logger.warning(f"[sb_insert] Insert em {table} sem retorno de dados")
+        return None
+
+    # Sempre retorna o primeiro registro (padrão do sistema)
     return response.data[0]
 
 
@@ -569,7 +572,7 @@ async def list_customers(user: dict = Depends(require_user)):
 
 @customers_router.post("")
 async def create_customer(data: CustomerCreate, user: dict = Depends(require_user)):
-    rows = await sb_insert("customers", {
+    payload = {
         "user_id": user["id"],
         "name": data.name,
         "phone": data.phone,
@@ -581,8 +584,27 @@ async def create_customer(data: CustomerCreate, user: dict = Depends(require_use
         "referral_name": data.referral_name if data.is_referral else None,
         "referral_phone": data.referral_phone if data.is_referral else None,
         "created_at": datetime.now(timezone.utc).isoformat(),
-    })
-    return rows[0]
+    }
+
+    rows = await sb_insert("customers", payload)
+
+    if rows:
+        return rows[0]
+
+    customer = await sb_one(
+        "customers",
+        "*",
+        eq={
+            "user_id": user["id"],
+            "phone": data.phone,
+            "name": data.name,
+        }
+    )
+
+    if not customer:
+        raise HTTPException(status_code=500, detail="Cliente criado, mas não foi possível recuperar o registro")
+
+    return customer
 
 
 @customers_router.get("/{customer_id}")
@@ -719,7 +741,7 @@ async def create_loan(data: LoanCreate, user: dict = Depends(require_user)):
     total_amount = data.amount + (data.amount * data.interest_rate / 100)
     installment_amount = total_amount / data.number_of_installments
 
-    rows = await sb_insert("loans", {
+    loan_payload = {
         "user_id": user["id"],
         "customer_id": data.customer_id,
         "amount": data.amount,
@@ -729,9 +751,27 @@ async def create_loan(data: LoanCreate, user: dict = Depends(require_user)):
         "start_date": data.start_date,
         "interval_days": data.interval_days,
         "created_at": datetime.now(timezone.utc).isoformat(),
-    })
+    }
 
-    loan = rows[0]
+    rows = await sb_insert("loans", loan_payload)
+
+    if rows:
+        loan = rows[0]
+    else:
+        loan = await sb_one(
+            "loans",
+            "*",
+            eq={
+                "user_id": user["id"],
+                "customer_id": data.customer_id,
+                "start_date": data.start_date,
+                "amount": data.amount,
+            }
+        )
+
+    if not loan:
+        raise HTTPException(status_code=500, detail="Empréstimo criado, mas não foi possível recuperar o registro")
+
     loan_id = loan["id"]
 
     start = parse_iso_datetime(data.start_date)

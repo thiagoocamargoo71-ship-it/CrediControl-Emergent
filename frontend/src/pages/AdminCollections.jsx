@@ -120,7 +120,7 @@ const AdminCollections = () => {
           <div className="relative z-10 mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-white lg:text-4xl">
-                Central Premium de Cobranças
+                Central de Cobranças
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-400">
                 Monitore parcelas vencidas de todos os credores, acompanhe valores atualizados
