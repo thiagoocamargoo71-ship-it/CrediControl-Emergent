@@ -1,14 +1,18 @@
-// AdminCollections_v2.jsx (com Timeline + Detalhes)
-
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API } from '../App';
 import Sidebar from '../components/Sidebar';
 import {
+  AlertTriangle,
+  Banknote,
+  CalendarClock,
   MessageCircle,
   RefreshCw,
   Search,
+  ShieldCheck,
+  Sparkles,
   UserRound,
+  WalletCards,
 } from 'lucide-react';
 
 const formatCurrency = (value) => {
@@ -21,53 +25,65 @@ const formatCurrency = (value) => {
 
 const formatDate = (value) => {
   if (!value) return '-';
-  return new Date(`${value}T00:00:00`).toLocaleDateString('pt-BR');
+  const date = new Date(`${value}T00:00:00`);
+  return date.toLocaleDateString('pt-BR');
 };
 
 const AdminCollections = () => {
-  const [rows, setRows] = useState([]);
+  const [overdueInstallments, setOverdueInstallments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
 
-  const [selected, setSelected] = useState(null);
+  // 🔥 NOVOS ESTADOS
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
 
-  const load = async () => {
+  const loadOverdueInstallments = async () => {
     setLoading(true);
+    setError('');
+
     try {
-      const res = await axios.get(`${API}/admin/installments/overdue`);
-      setRows(res.data || []);
-    } catch {
-      setRows([]);
+      const response = await axios.get(`${API}/admin/installments/overdue`);
+      setOverdueInstallments(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setError('Não foi possível carregar as parcelas vencidas.');
+      setOverdueInstallments([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
+    loadOverdueInstallments();
   }, []);
 
-  const filtered = useMemo(() => {
-    const t = search.toLowerCase();
-    if (!t) return rows;
-    return rows.filter(r =>
-      r.customer_name?.toLowerCase().includes(t) ||
-      r.customer_phone?.includes(t)
-    );
-  }, [rows, search]);
+  const filteredRows = useMemo(() => {
+    const term = search.trim().toLowerCase();
 
+    if (!term) return overdueInstallments;
+
+    return overdueInstallments.filter((row) => (
+      row.customer_name?.toLowerCase().includes(term) ||
+      row.customer_phone?.toLowerCase().includes(term) ||
+      row.creditor_name?.toLowerCase().includes(term)
+    ));
+  }, [overdueInstallments, search]);
+
+  // 🔥 FUNÇÃO DETALHES
   const openDetails = async (row) => {
-    setSelected(row);
+    setSelectedInstallment(row);
     setLoadingTimeline(true);
 
     try {
-      const res = await axios.get(
+      const response = await axios.get(
         `${API}/admin/installments/${row.installment_id}/collection-messages`
       );
-      setTimeline(res.data.messages || []);
-    } catch {
+
+      setTimeline(response.data.messages || []);
+    } catch (err) {
+      console.error('Erro ao carregar timeline', err);
       setTimeline([]);
     } finally {
       setLoadingTimeline(false);
@@ -75,16 +91,17 @@ const AdminCollections = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#050507] text-white">
       <Sidebar />
 
-      <main className="p-6 lg:ml-[260px]">
+      <main className="px-4 py-6 lg:ml-[276px] lg:px-8">
+
         <h1 className="text-2xl font-bold mb-4">Central de Cobranças</h1>
 
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar..."
+          placeholder="Buscar cliente..."
           className="mb-4 p-3 rounded bg-neutral-900 w-full"
         />
 
@@ -92,92 +109,99 @@ const AdminCollections = () => {
           <div>Carregando...</div>
         ) : (
           <div className="space-y-3">
-            {filtered.map(row => (
-              <div key={row.installment_id} className="p-4 bg-neutral-900 rounded-xl">
-                
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold">{row.customer_name}</div>
-                    <div className="text-sm text-neutral-400">{row.customer_phone}</div>
-                    <div className="text-xs text-neutral-500">
-                      {row.number}/{row.total_installments}
-                    </div>
+            {filteredRows.map((row) => (
+              <div key={row.installment_id} className="p-4 bg-neutral-900 rounded-xl flex justify-between items-center">
+
+                <div>
+                  <div className="font-bold">{row.customer_name}</div>
+                  <div className="text-sm text-neutral-400">{row.customer_phone}</div>
+                  <div className="text-xs text-neutral-500">
+                    Parcela {row.number}/{row.total_installments}
                   </div>
+                </div>
 
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
 
-                    <button
-                      onClick={() => openDetails(row)}
-                      className="px-4 py-2 bg-blue-600 rounded"
-                    >
-                      Detalhes
-                    </button>
+                  {/* 🔵 BOTÃO DETALHES */}
+                  <button
+                    onClick={() => openDetails(row)}
+                    className="px-4 py-2 bg-blue-600 rounded"
+                  >
+                    Detalhes
+                  </button>
 
-                    <button
-                      onClick={async () => {
-                        const res = await axios.post(
+                  {/* 🟢 WHATSAPP */}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await axios.post(
                           `${API}/admin/installments/${row.installment_id}/collection-message`
                         );
 
-                        if (res.data?.whatsapp_url) {
-                          window.open(res.data.whatsapp_url, '_blank');
+                        const data = response.data;
 
-                          if (res.data?.message_id) {
+                        if (data?.whatsapp_url) {
+                          window.open(data.whatsapp_url, '_blank');
+
+                          if (data?.message_id) {
                             await axios.post(
-                              `${API}/admin/collection-messages/${res.data.message_id}/mark-as-sent`
+                              `${API}/admin/collection-messages/${data.message_id}/mark-as-sent`
                             );
                           }
                         }
-                      }}
-                      className="px-4 py-2 bg-green-600 rounded"
-                    >
-                      WhatsApp
-                    </button>
+                      } catch (err) {
+                        console.error('Erro ao criar mensagem', err);
+                        alert('Erro ao gerar mensagem');
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 rounded"
+                  >
+                    WhatsApp
+                  </button>
 
-                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* MODAL */}
-        {selected && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
-            <div className="bg-neutral-900 p-6 rounded-xl w-[600px] max-h-[80vh] overflow-auto">
+        {/* 🔥 MODAL */}
+        {selectedInstallment && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="w-full max-w-2xl rounded-2xl bg-[#0b0b0f] p-6">
 
-              <h2 className="text-xl font-bold mb-4">
-                Detalhes da Cobrança
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Detalhes da Cobrança</h2>
 
-              <div className="mb-4">
-                <div><b>Cliente:</b> {selected.customer_name}</div>
-                <div><b>Parcela:</b> {selected.number}/{selected.total_installments}</div>
-                <div><b>Valor:</b> {formatCurrency(selected.updated_amount)}</div>
-                <div><b>Atraso:</b> {selected.days_overdue} dias</div>
+              <div className="mb-4 text-sm text-neutral-300">
+                <p><b>Cliente:</b> {selectedInstallment.customer_name}</p>
+                <p><b>Parcela:</b> {selectedInstallment.number}/{selectedInstallment.total_installments}</p>
+                <p><b>Valor:</b> {formatCurrency(selectedInstallment.updated_amount)}</p>
+                <p><b>Atraso:</b> {selectedInstallment.days_overdue} dias</p>
               </div>
 
-              <h3 className="font-semibold mb-2">Timeline</h3>
+              <h3 className="mb-2 text-sm font-semibold">Timeline</h3>
 
               {loadingTimeline ? (
                 <div>Carregando...</div>
+              ) : timeline.length === 0 ? (
+                <div>Nenhuma cobrança registrada</div>
               ) : (
-                <div className="space-y-2">
-                  {timeline.map(t => (
-                    <div key={t.id} className="p-3 bg-black rounded">
-                      <div className="text-sm font-bold">{t.status}</div>
+                <div className="space-y-2 max-h-[300px] overflow-auto">
+                  {timeline.map((msg) => (
+                    <div key={msg.id} className="p-3 bg-black rounded">
+                      <div className="text-xs text-blue-300 font-bold">{msg.status}</div>
                       <div className="text-xs text-neutral-500">
-                        {new Date(t.created_at).toLocaleString()}
+                        {new Date(msg.created_at).toLocaleString()}
                       </div>
-                      <div className="text-xs mt-2">{t.message}</div>
+                      <div className="text-xs mt-2 whitespace-pre-line">{msg.message}</div>
                     </div>
                   ))}
                 </div>
               )}
 
               <button
-                onClick={() => setSelected(null)}
-                className="mt-4 px-4 py-2 bg-red-600 rounded"
+                onClick={() => setSelectedInstallment(null)}
+                className="mt-4 w-full bg-red-600 py-2 rounded"
               >
                 Fechar
               </button>
@@ -185,6 +209,7 @@ const AdminCollections = () => {
             </div>
           </div>
         )}
+
       </main>
     </div>
   );
