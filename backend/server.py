@@ -1790,6 +1790,13 @@ Por favor, entre em contato para regularização."""
         "channel": "whatsapp",
         "message": message,
         "status": "created",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "metadata": {
+            "source": "admin_manual",
+            "generated_by": user["id"],
+            "days_overdue": days_overdue,
+            "updated_amount": round(updated_amount, 2),
+        },
     }
 
     created = await sb_insert("collection_messages", payload)
