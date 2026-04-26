@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, Any, Dict, List
 
 import bcrypt
+from urllib.parse import quote
 import jwt
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
 from pydantic import BaseModel, EmailStr
@@ -208,6 +209,17 @@ async def sb_insert(table: str, doc: Any):
     db = ensure_supabase()
     r = await db.table(table).insert(doc).execute()
     return r.data
+
+async def sb_insert(table: str, payload: dict):
+    response = await supabase.table(table).insert(payload).execute()
+
+    if not response.data:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao inserir registro na tabela {table}"
+        )
+
+    return response.data[0]
 
 
 async def sb_update(table: str, data: Dict[str, Any], eq: Dict[str, Any] = None):
