@@ -1576,6 +1576,88 @@ async def get_admin_installment_details(installment_id: str, user: dict = Depend
     }
 
 
+@admin_router.get("/installments/overdue")
+async def list_admin_overdue_installments(user: dict = Depends(require_admin)):
+    loans = await sb_many(
+        "loans",
+        "id, user_id, customer_id, amount, total_amount, interest_rate, number_of_installments"
+    )
+
+    if not loans:
+        return []
+
+    loan_ids = [loan["id"] for loan in loans]
+    loan_map = {loan["id"]: loan for loan in loans}
+
+    installments = await sb_many(
+        "installments",
+        "id, loan_id, number, amount, updated_amount, due_date, status, paid_at",
+        in_={"loan_id": loan_ids},
+        neq={"status": "paid"},
+        order="due_date"
+    )
+
+    today = datetime.now(timezone.utc).date()
+    overdue_rows = []
+
+    customer_ids = list(set(loan["customer_id"] for loan in loans))
+    creditor_ids = list(set(loan["user_id"] for loan in loans))
+
+    customers = await sb_many(
+        "customers",
+        "id, name, phone, email, user_id",
+        in_={"id": customer_ids}
+    )
+
+    creditors = await sb_many(
+        "users",
+        "id, name, email",
+        in_={"id": creditor_ids}
+    )
+
+    customer_map = {customer["id"]: customer for customer in customers}
+    creditor_map = {creditor["id"]: creditor for creditor in creditors}
+
+    for inst in installments:
+        loan = loan_map.get(inst["loan_id"])
+
+        if not loan:
+            continue
+
+        due_date = parse_due_date(inst["due_date"])
+
+        if due_date >= today:
+            continue
+
+        days_overdue = (today - due_date).days
+        daily_rate = (loan.get("interest_rate") or 0) / 30 / 100
+        amount = inst.get("amount") or 0
+        updated_amount = amount + (amount * daily_rate * days_overdue)
+
+        customer = customer_map.get(loan["customer_id"], {})
+        creditor = creditor_map.get(loan["user_id"], {})
+
+        overdue_rows.append({
+            "installment_id": inst["id"],
+            "creditor_id": loan["user_id"],
+            "creditor_name": creditor.get("name"),
+            "creditor_email": creditor.get("email"),
+            "customer_id": loan["customer_id"],
+            "customer_name": customer.get("name"),
+            "customer_phone": customer.get("phone"),
+            "loan_id": loan["id"],
+            "number": inst.get("number"),
+            "total_installments": loan.get("number_of_installments"),
+            "amount": amount,
+            "updated_amount": round(updated_amount, 2),
+            "due_date": inst.get("due_date"),
+            "days_overdue": days_overdue,
+            "status": "overdue",
+        })
+
+    return overdue_rows
+
+
 @admin_router.get("/users/{user_id}")
 async def get_user(user_id: str, user: dict = Depends(require_admin)):
     u = await sb_one(
