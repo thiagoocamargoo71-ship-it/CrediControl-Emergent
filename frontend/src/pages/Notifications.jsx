@@ -273,7 +273,7 @@ const Notifications = () => {
               </div>
             </div>
             <p className="mt-3 text-sm text-neutral-400">
-              Parcelas com até 14 dias de atraso.
+              Parcelas que exigem cobrança ou negociação.
             </p>
           </div>
 
