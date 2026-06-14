@@ -207,7 +207,7 @@ const Dashboard = () => {
           statusLabel = 'Vence hoje';
           priority = 1;
           relativeText = 'Vence hoje';
-        } else if (diffDays > 0 && diffDays <= 7) {
+        } else if (diffDays > 0) {
           status = 'proxima';
           statusLabel = 'Próxima do vencimento';
           priority = 2;
