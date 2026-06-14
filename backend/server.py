@@ -1127,6 +1127,74 @@ async def get_installments_stats(user: dict = Depends(require_user)):
     }
 
 
+@installments_router.post("/{installment_id}/renegotiate")
+async def renegotiate_installment(
+    installment_id: str,
+    payload: dict,
+    user: dict = Depends(require_user)
+):
+    installment = await sb_one(
+        "installments",
+        "*",
+        eq={"id": installment_id}
+    )
+
+    if not installment:
+        raise HTTPException(404, "Parcela não encontrada")
+
+    loan = await sb_one(
+        "loans",
+        "*",
+        eq={"id": installment["loan_id"]}
+    )
+
+    if not loan:
+        raise HTTPException(404, "Empréstimo não encontrado")
+
+    # segurança: garante que o empréstimo pertence ao usuário logado
+    if loan["user_id"] != user["id"]:
+        raise HTTPException(403, "Sem permissão")
+
+    new_due_date = payload.get("due_date")
+    new_amount = payload.get("amount")
+
+    if not new_due_date or not new_amount:
+        raise HTTPException(
+            400,
+            "Informe nova data e valor"
+        )
+
+    # marca a antiga como renegociada
+    await sb_update(
+        "installments",
+        {"status": "negotiated"},
+        eq={"id": installment_id}
+    )
+
+    # cria nova parcela
+    new_installment = {
+        "loan_id": installment["loan_id"],
+        "number": installment["number"],
+        "total_installments": installment["total_installments"],
+        "amount": float(new_amount),
+        "updated_amount": float(new_amount),
+        "due_date": new_due_date,
+        "status": "pending",
+        "interest_rate": installment.get("interest_rate"),
+        "renegotiated_from": installment["id"]
+    }
+
+    created = await sb_insert(
+        "installments",
+        new_installment
+    )
+
+    return {
+        "message": "Parcela renegociada com sucesso",
+        "installment": created
+    }
+
+
 # =========================
 # PAYMENTS ROUTES
 # =========================
