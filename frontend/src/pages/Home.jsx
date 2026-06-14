@@ -212,7 +212,7 @@ const Dashboard = () => {
           statusLabel = 'Próxima do vencimento';
           priority = 2;
           relativeText = diffDays === 1 ? 'Vence em 1 dia' : `Vence em ${diffDays} dias`;
-        } else if (diffDays < 0 && diffDays >= -14) {
+        } else if (diffDays < 0) {
           const overdueDays = Math.abs(diffDays);
           status = 'vencida';
           statusLabel = 'Vencida';
