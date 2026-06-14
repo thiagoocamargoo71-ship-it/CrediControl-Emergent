@@ -857,7 +857,7 @@ const Dashboard = () => {
                       {notificationSummary.vencidas}
                     </p>
                     <p className="mt-1 text-sm text-neutral-400">
-                      Parcelas com até 14 dias de atraso
+                      Todas as parcelas vencidas e pendentes de pagamento
                     </p>
                   </div>
 
@@ -898,8 +898,8 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    {installmentsNotifications.slice(0, 4).map((item) => {
+                  <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
+                    {installmentsNotifications.map((item) => {
                       const itemStyles = getNotificationItemStyles(item.status);
 
                       return (
