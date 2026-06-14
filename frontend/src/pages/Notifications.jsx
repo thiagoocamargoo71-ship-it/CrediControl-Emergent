@@ -96,7 +96,7 @@ const Notifications = () => {
           label = diff === 1 ? 'Vence em 1 dia' : `Vence em ${diff} dias`;
           priority = 2;
           title = 'Parcela próxima do vencimento';
-        } else if (diff < 0 && diff >= -14) {
+        } else if (diff < 0) {
           type = 'overdue';
           label =
             Math.abs(diff) === 1
