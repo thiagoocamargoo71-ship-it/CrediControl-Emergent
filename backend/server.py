@@ -824,6 +824,75 @@ async def delete_loan(loan_id: str, user: dict = Depends(require_user)):
     return {"message": "Empréstimo excluído com sucesso"}
 
 
+@loans_router.post("/{loan_id}/installments")
+async def create_manual_installment(
+    loan_id: str,
+    payload: dict,
+    user: dict = Depends(require_user)
+):
+    loan = await sb_one(
+        "loans",
+        "*",
+        eq={"id": loan_id}
+    )
+
+    if not loan:
+        raise HTTPException(
+            status_code=404,
+            detail="Empréstimo não encontrado"
+        )
+
+    if loan["user_id"] != user["id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Sem permissão"
+        )
+
+    amount = payload.get("amount")
+    due_date = payload.get("due_date")
+    notes = payload.get("notes", "")
+    apply_interest = payload.get("apply_interest", True)
+
+    if not amount or not due_date:
+        raise HTTPException(
+            status_code=400,
+            detail="Informe valor e vencimento"
+        )
+
+    installments = await sb_many(
+        "installments",
+        "number",
+        eq={"loan_id": loan_id}
+    )
+
+    next_number = len(installments) + 1
+
+    interest_rate = (
+        loan["interest_rate"]
+        if apply_interest
+        else 0
+    )
+
+    installment = {
+        "loan_id": loan_id,
+        "number": next_number,
+        "total_installments": next_number,
+        "amount": float(amount),
+        "updated_amount": float(amount),
+        "due_date": due_date,
+        "status": "pending",
+        "interest_rate": interest_rate,
+        "notes": notes
+    }
+
+    created = await sb_insert(
+        "installments",
+        installment
+    )
+
+    return created
+
+
 # =========================
 # INSTALLMENTS ROUTES
 # =========================

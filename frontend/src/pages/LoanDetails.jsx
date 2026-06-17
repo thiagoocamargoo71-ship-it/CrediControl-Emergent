@@ -15,6 +15,7 @@ import {
   Clock,
   AlertTriangle,
   FileText,
+  PlusCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -28,6 +29,14 @@ const LoanDetails = () => {
   const [installments, setInstallments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
+  const [showInstallmentModal, setShowInstallmentModal] = useState(false);
+
+const [newInstallment, setNewInstallment] = useState({
+  amount: '',
+  due_date: '',
+  notes: '',
+  apply_interest: true,
+});
 
   const fetchData = useCallback(async () => {
     try {
@@ -320,6 +329,15 @@ const LoanDetails = () => {
 
   const rightAction = (
     <div className="hidden sm:flex items-center gap-2">
+
+      <Button
+        onClick={() => setShowInstallmentModal(true)}
+        className="h-11 rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-700 px-4 text-white shadow-[0_10px_30px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(16,185,129,0.34)]"
+      >
+        <PlusCircle className="mr-2 h-4 w-4" />
+        + Parcela
+      </Button>
+
       <Button
         onClick={handleGenerateContract}
         className="h-11 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 px-4 text-white shadow-[0_10px_30px_rgba(56,189,248,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:from-sky-300 hover:via-blue-400 hover:to-blue-500 hover:shadow-[0_14px_36px_rgba(96,165,250,0.34)]"
