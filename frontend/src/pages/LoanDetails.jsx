@@ -715,9 +715,16 @@ const [newInstallment, setNewInstallment] = useState({
                     className="mt-4 w-full rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
                     data-testid={`pay-installment-${installment.number}`}
                   >
-                    {payingId === installment.id ? 'Registrando...' : 'Registrar Pagamento'}
+                    {payingId === installment.id ? 'Registrando...' : 'Registrar Pagamento'}              
+                  </Button>
+                )}                
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-                  {showInstallmentModal && (
+               {showInstallmentModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div className="w-full max-w-lg rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl">
 
@@ -830,13 +837,6 @@ const [newInstallment, setNewInstallment] = useState({
   </div>
 )}
 
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </AppShell>
   );
 };
