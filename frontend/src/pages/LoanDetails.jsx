@@ -78,6 +78,33 @@ const [newInstallment, setNewInstallment] = useState({
     }
   };
 
+  const handleCreateInstallment = async () => {
+  try {
+    await axios.post(
+      `${API}/loans/${id}/installments`,
+      newInstallment
+    );
+
+    toast.success('Parcela criada com sucesso!');
+
+    setShowInstallmentModal(false);
+
+    setNewInstallment({
+      amount: '',
+      due_date: '',
+      notes: '',
+      apply_interest: true,
+    });
+
+    await fetchData();
+  } catch (error) {
+    toast.error(
+      formatApiErrorDetail(error.response?.data?.detail) ||
+        'Erro ao criar parcela'
+    );
+  }
+};
+
   const formatCurrency = (value) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -689,6 +716,120 @@ const [newInstallment, setNewInstallment] = useState({
                     data-testid={`pay-installment-${installment.number}`}
                   >
                     {payingId === installment.id ? 'Registrando...' : 'Registrar Pagamento'}
+
+                  {showInstallmentModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="w-full max-w-lg rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl">
+
+      <div className="mb-6">
+        <h2 className="font-heading text-2xl font-bold text-neutral-50">
+          Nova Parcela
+        </h2>
+
+        <p className="mt-1 text-sm text-neutral-400">
+          Adicione uma parcela manualmente ao empréstimo.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+
+        <div>
+          <label className="mb-2 block text-sm text-neutral-300">
+            Valor da parcela
+          </label>
+
+          <input
+            type="number"
+            value={newInstallment.amount}
+            onChange={(e) =>
+              setNewInstallment({
+                ...newInstallment,
+                amount: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+            placeholder="Ex: 350.00"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm text-neutral-300">
+            Vencimento
+          </label>
+
+          <input
+            type="date"
+            value={newInstallment.due_date}
+            onChange={(e) =>
+              setNewInstallment({
+                ...newInstallment,
+                due_date: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm text-neutral-300">
+            Observação
+          </label>
+
+          <textarea
+            rows={3}
+            value={newInstallment.notes}
+            onChange={(e) =>
+              setNewInstallment({
+                ...newInstallment,
+                notes: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+            placeholder="Ex: Parcela extra negociada"
+          />
+        </div>
+
+        <label className="flex items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
+          <input
+            type="checkbox"
+            checked={newInstallment.apply_interest}
+            onChange={(e) =>
+              setNewInstallment({
+                ...newInstallment,
+                apply_interest: e.target.checked,
+              })
+            }
+          />
+
+          <span className="text-sm text-neutral-300">
+            Aplicar juros do empréstimo
+          </span>
+        </label>
+
+      </div>
+
+      <div className="mt-8 flex justify-end gap-3">
+
+        <Button
+          variant="ghost"
+          onClick={() => setShowInstallmentModal(false)}
+          className="rounded-2xl"
+        >
+          Cancelar
+        </Button>
+
+        <Button
+          onClick={handleCreateInstallment}
+          className="rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
+        >
+          Criar Parcela
+        </Button>
+
+      </div>
+    </div>
+  </div>
+)}
+
                   </Button>
                 )}
               </div>
