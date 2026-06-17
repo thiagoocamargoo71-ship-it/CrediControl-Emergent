@@ -141,11 +141,17 @@ const Dashboard = () => {
 
     if (!rawDate) return null;
 
-    const parsedDate = new Date(rawDate);
-    if (Number.isNaN(parsedDate.getTime())) return null;
+    const [year, month, day] = rawDate.split('-');
 
-    parsedDate.setHours(0, 0, 0, 0);
-    return parsedDate;
+const parsedDate = new Date(
+  Number(year),
+  Number(month) - 1,
+  Number(day)
+);
+
+parsedDate.setHours(0, 0, 0, 0);
+
+return parsedDate;
   };
 
   const getInstallmentPaidStatus = (installment) => {
