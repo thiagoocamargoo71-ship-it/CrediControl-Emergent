@@ -748,18 +748,24 @@ async def create_loan(data: LoanCreate, user: dict = Depends(require_user)):
     if not customer:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
-    total_amount = data.amount + (data.amount * data.interest_rate / 100)
+    interest_rate = data.interest_rate or 0
+
+    total_amount = (
+        data.amount +
+        (data.amount * interest_rate / 100)
+    )
+    interval_days = data.interval_days or 0
     installment_amount = total_amount / data.number_of_installments
 
     loan_payload = {
         "user_id": user["id"],
         "customer_id": data.customer_id,
         "amount": data.amount,
-        "interest_rate": data.interest_rate,
+        "interest_rate": interest_rate,
         "total_amount": round(total_amount, 2),
         "number_of_installments": data.number_of_installments,
         "start_date": data.start_date,
-        "interval_days": data.interval_days,
+        "interval_days": interval_days,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -786,7 +792,15 @@ async def create_loan(data: LoanCreate, user: dict = Depends(require_user)):
     installments = []
 
     for i in range(data.number_of_installments):
-        due_date = start + timedelta(days=data.interval_days * (i + 1))
+
+        if data.number_of_installments == 1:
+            due_date = start
+
+        else:
+            due_date = start + timedelta(
+                days=interval_days * i
+            )
+
         installments.append({
             "loan_id": loan_id,
             "number": i + 1,

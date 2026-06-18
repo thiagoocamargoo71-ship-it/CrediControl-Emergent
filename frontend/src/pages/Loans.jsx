@@ -153,10 +153,12 @@ const Loans = () => {
       const payload = {
         customer_id: formData.customer_id,
         amount: parseFloat(formData.amount),
-        interest_rate: parseFloat(formData.interest_rate),
+        interest_rate: parseFloat(formData.interest_rate || 0),
         number_of_installments: parseInt(formData.number_of_installments, 10),
         start_date: startDate.toISOString().split('T')[0],
-        interval_days: parseInt(formData.interval_days, 10),
+        interval_days: formData.interval_days
+        ? parseInt(formData.interval_days, 10)
+        : null,
       };
 
       await axios.post(`${API}/loans`, payload);
@@ -198,12 +200,12 @@ const Loans = () => {
   };
 
   const calculatePreview = () => {
-    if (!formData.amount || !formData.interest_rate || !formData.number_of_installments) {
+    if (!formData.amount || !formData.number_of_installments) {
       return null;
     }
 
     const amount = parseFloat(formData.amount);
-    const rate = parseFloat(formData.interest_rate);
+    const rate = parseFloat(formData.interest_rate || 0);
     const total = amount + (amount * rate) / 100;
     const installment = total / parseInt(formData.number_of_installments, 10);
 
@@ -621,7 +623,7 @@ const Loans = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="interest_rate" className="text-neutral-300">
-                      Juros (%) *
+                     Juros (%)
                     </Label>
                     <div className="relative">
                       <Percent className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
@@ -634,9 +636,8 @@ const Loans = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, interest_rate: e.target.value })
                         }
-                        placeholder="0"
-                        className="h-11 rounded-2xl border-white/8 bg-neutral-950 pl-10 text-neutral-50"
-                        required
+                        placeholder="Vazio = sem juros"
+                        className="h-11 rounded-2xl border-white/8 bg-neutral-950 pl-10 text-neutral-50"                        
                         data-testid="loan-interest-rate-input"
                       />
                     </div>
@@ -667,24 +668,29 @@ const Loans = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="interval_days" className="text-neutral-300">
-                      Intervalo (dias) *
-                    </Label>
-                    <Input
-                      id="interval_days"
-                      type="number"
-                      min="1"
-                      value={formData.interval_days}
-                      onChange={(e) =>
-                        setFormData({ ...formData, interval_days: e.target.value })
-                      }
-                      placeholder="30"
-                      className="h-11 rounded-2xl border-white/8 bg-neutral-950 text-neutral-50"
-                      required
-                      data-testid="loan-interval-days-input"
-                    />
-                  </div>
+                  {Number(formData.number_of_installments || 0) > 1 && (
+  <div className="space-y-2">
+    <Label htmlFor="interval_days" className="text-neutral-300">
+      Intervalo (dias)
+    </Label>
+
+    <Input
+      id="interval_days"
+      type="number"
+      min="1"
+      value={formData.interval_days}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          interval_days: e.target.value,
+        })
+      }
+      placeholder="Vazio = manual"
+      className="h-11 rounded-2xl border-white/8 bg-neutral-950 text-neutral-50"
+      data-testid="loan-interval-days-input"
+    />
+  </div>
+)}
                 </div>
 
                 <div className="space-y-2">
