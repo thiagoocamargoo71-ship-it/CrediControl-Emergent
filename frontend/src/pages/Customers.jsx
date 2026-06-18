@@ -68,6 +68,7 @@ const Customers = () => {
   const [customerStatuses, setCustomerStatuses] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -234,6 +235,18 @@ const Customers = () => {
       customer.phone?.includes(searchTerm)
   );
 
+const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+  const comparison = (a.name || '').localeCompare(
+    b.name || '',
+    'pt-BR',
+    { sensitivity: 'base' }
+  );
+
+  return sortOrder === 'asc'
+    ? comparison
+    : -comparison;
+});
+
   const rightAction = (
     <Button
       onClick={() => openModal()}
@@ -270,17 +283,31 @@ const Customers = () => {
     >
       <div data-testid="customers-page" className="space-y-8 lg:space-y-10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-xl flex-1">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
-            <Input
-              type="text"
-              placeholder="Buscar por nome ou telefone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-12 rounded-2xl border-white/8 bg-neutral-900/90 pl-11 text-neutral-50 placeholder:text-neutral-500 focus:border-blue-500/50 focus:ring-0"
-              data-testid="search-customers-input"
-            />
-          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center max-w-2xl flex-1">
+
+  <div className="relative flex-1">
+    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+
+    <Input
+      type="text"
+      placeholder="Buscar por nome ou telefone..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="h-12 rounded-2xl border-white/8 bg-neutral-900/90 pl-11 text-neutral-50 placeholder:text-neutral-500 focus:border-blue-500/50 focus:ring-0"
+      data-testid="search-customers-input"
+    />
+  </div>
+
+  <select
+    value={sortOrder}
+    onChange={(e) => setSortOrder(e.target.value)}
+    className="h-12 rounded-2xl border border-white/8 bg-neutral-900/90 px-4 text-sm text-neutral-200 outline-none transition focus:border-blue-500/50"
+  >
+    <option value="asc">A → Z</option>
+    <option value="desc">Z → A</option>
+  </select>
+
+</div>
 
           <div className="flex items-center gap-2 self-start rounded-2xl border border-white/8 bg-neutral-900/80 px-4 py-3 text-sm text-neutral-400">
             <Users className="h-4 w-4 text-neutral-500" />
@@ -313,7 +340,7 @@ const Customers = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredCustomers.map((customer, index) => {
+            {sortedCustomers.map((customer, index) => {
               const status = customerStatuses[customer.id];
               const statusConfig = getStatusConfig(status?.status);
               const StatusIcon = statusConfig.icon;
