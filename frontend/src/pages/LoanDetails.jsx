@@ -18,6 +18,14 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -365,7 +373,7 @@ const formatDate = (dateStr) => {
         className="h-11 rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-700 px-4 text-white shadow-[0_10px_30px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(16,185,129,0.34)]"
       >
         <PlusCircle className="mr-2 h-4 w-4" />
-        + Parcela
+        Nova Parcela
       </Button>
 
       <Button
@@ -615,24 +623,49 @@ const formatDate = (dateStr) => {
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      {installment.status !== 'paid' ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handlePayInstallment(installment.id)}
-                          disabled={payingId === installment.id}
-                          className="rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700"
-                          data-testid={`pay-installment-${installment.number}`}
-                        >
-                          {payingId === installment.id
-                            ? 'Registrando...'
-                            : 'Registrar Pagamento'}
-                        </Button>
-                      ) : (
-                        <span className="text-sm text-emerald-500">
-                          Pago em {installment.paid_at && formatDate(installment.paid_at)}
-                        </span>
-                      )}
-                    </td>
+  {installment.status !== 'paid' ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-xl border border-white/10 hover:bg-white/5"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="end"
+        className="w-56 border-white/10 bg-neutral-950 text-white"
+      >
+        <DropdownMenuItem
+          onClick={() => handlePayInstallment(installment.id)}
+        >
+          Registrar Pagamento
+        </DropdownMenuItem>
+
+        <DropdownMenuItem>
+          Editar Parcela
+        </DropdownMenuItem>
+
+        <DropdownMenuItem>
+          Renegociar
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem className="text-red-400">
+          Excluir Parcela
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : (
+    <span className="text-sm text-emerald-500">
+      Pago em {installment.paid_at && formatDate(installment.paid_at)}
+    </span>
+  )}
+</td>
                   </tr>
                 ))}
               </tbody>
