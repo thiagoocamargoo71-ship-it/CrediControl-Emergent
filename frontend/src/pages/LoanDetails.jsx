@@ -113,9 +113,13 @@ const [newInstallment, setNewInstallment] = useState({
 
   if (!dateValue) return '-';
 
-const [year, month, day] = dateValue.split('-');
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-';
 
-return `${day}/${month}/${year}`;
+  const [year, month, day] = dateStr.split('-');
+
+  return `${day}/${month}/${year}`;
+};
 
   const getStatusBadge = (status) => {
     const statusConfig = {
