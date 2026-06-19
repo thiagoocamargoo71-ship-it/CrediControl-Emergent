@@ -56,11 +56,11 @@ const Reports = () => {
   const formatDate = (dateValue) => {
     if (!dateValue) return '-';
 
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return '-';
+    if (!dateValue) return '-';
 
-    return new Intl.DateTimeFormat('pt-BR').format(date);
-  };
+const [year, month, day] = dateValue.split('-');
+
+return `${day}/${month}/${year}`;
 
   const formatMonthLabel = (monthKey) => {
     const [year, month] = monthKey.split('-');
