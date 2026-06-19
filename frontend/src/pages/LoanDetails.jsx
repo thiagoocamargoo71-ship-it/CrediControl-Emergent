@@ -110,8 +110,7 @@ const [newInstallment, setNewInstallment] = useState({
       style: 'currency',
       currency: 'BRL',
     }).format(value || 0);
-
-  if (!dateValue) return '-';
+    
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-';
