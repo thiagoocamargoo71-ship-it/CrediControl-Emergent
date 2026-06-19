@@ -26,6 +26,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
+import {
+  MoreVertical,
+  Wallet,
+  Pencil,
+  HandCoins,
+  Trash2,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -636,28 +643,75 @@ const formatDate = (dateStr) => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        align="end"
-        className="w-56 border-white/10 bg-neutral-950 text-white"
-      >
+  align="end"
+  className="
+    w-64
+    rounded-2xl
+    border border-white/10
+    bg-neutral-950/95
+    backdrop-blur-xl
+    shadow-[0_20px_60px_rgba(0,0,0,0.55)]
+    overflow-hidden
+  "
+>
         <DropdownMenuItem
-          onClick={() => handlePayInstallment(installment.id)}
-        >
-          Registrar Pagamento
-        </DropdownMenuItem>
+  onClick={() => handlePayInstallment(installment.id)}
+  className="
+    cursor-pointer
+    px-4
+    py-3
+    text-neutral-200
+    focus:bg-blue-500/10
+    focus:text-blue-300
+  "
+>
+  <Wallet className="mr-3 h-4 w-4 text-emerald-400" />
+  Registrar Pagamento
+</DropdownMenuItem>
 
-        <DropdownMenuItem>
-          Editar Parcela
-        </DropdownMenuItem>
+        <DropdownMenuItem
+  className="
+    cursor-pointer
+    px-4
+    py-3
+    text-neutral-200
+    focus:bg-blue-500/10
+    focus:text-blue-300
+  "
+>
+  <Pencil className="mr-3 h-4 w-4 text-blue-400" />
+  Editar Parcela
+</DropdownMenuItem>
 
-        <DropdownMenuItem>
-          Renegociar
-        </DropdownMenuItem>
+        <DropdownMenuItem
+  className="
+    cursor-pointer
+    px-4
+    py-3
+    text-neutral-200
+    focus:bg-blue-500/10
+    focus:text-blue-300
+  "
+>
+  <HandCoins className="mr-3 h-4 w-4 text-amber-400" />
+  Renegociar
+</DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="text-red-400">
-          Excluir Parcela
-        </DropdownMenuItem>
+        <DropdownMenuItem
+  className="
+    cursor-pointer
+    px-4
+    py-3
+    text-red-400
+    focus:bg-red-500/10
+    focus:text-red-300
+  "
+>
+  <Trash2 className="mr-3 h-4 w-4" />
+  Excluir Parcela
+</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
