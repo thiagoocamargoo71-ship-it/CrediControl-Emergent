@@ -195,9 +195,12 @@ const Loans = () => {
     }).format(value || 0);
 
   const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return format(date, 'dd/MM/yyyy', { locale: ptBR });
-  };
+  if (!dateStr) return '-';
+
+  const [year, month, day] = dateStr.split('-');
+
+  return `${day}/${month}/${year}`;
+};
 
   const calculatePreview = () => {
     if (!formData.amount || !formData.number_of_installments) {
