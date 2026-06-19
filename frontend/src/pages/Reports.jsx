@@ -53,14 +53,13 @@ const Reports = () => {
       currency: 'BRL',
     }).format(value || 0);
 
-  const formatDate = (dateValue) => {
-    if (!dateValue) return '-';
+  const formatDate = (dateStr) => {
+  if (!dateStr) return '-';
 
-    if (!dateValue) return '-';
+  const [year, month, day] = dateStr.split('-');
 
-const [year, month, day] = dateValue.split('-');
-
-return `${day}/${month}/${year}`;
+  return `${day}/${month}/${year}`;
+};
 
   const formatMonthLabel = (monthKey) => {
     const [year, month] = monthKey.split('-');
