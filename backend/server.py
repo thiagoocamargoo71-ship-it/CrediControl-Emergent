@@ -952,6 +952,48 @@ async def update_installment(
 
     return updated
 
+@loans_router.delete("/installments/{installment_id}")
+async def delete_installment(
+    installment_id: str,
+    user: dict = Depends(require_user)
+):
+    installment = await sb_one(
+        "installments",
+        "*",
+        eq={"id": installment_id}
+    )
+
+    if not installment:
+        raise HTTPException(
+            status_code=404,
+            detail="Parcela não encontrada"
+        )
+
+    if installment["status"] == "paid":
+        raise HTTPException(
+            status_code=400,
+            detail="Não é possível excluir uma parcela paga"
+        )
+
+    loan = await sb_one(
+        "loans",
+        "*",
+        eq={"id": installment["loan_id"]}
+    )
+
+    if loan["user_id"] != user["id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Sem permissão"
+        )
+
+    await sb_delete(
+        "installments",
+        eq={"id": installment_id}
+    )
+
+    return {"success": True}
+
 
 # =========================
 # INSTALLMENTS ROUTES
