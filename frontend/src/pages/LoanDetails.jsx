@@ -982,16 +982,17 @@ const formatDate = (dateStr) => {
           }
         />
 
-        <Textarea
-          placeholder="Observações"
-          value={editForm.notes}
-          onChange={(e) =>
-            setEditForm({
-              ...editForm,
-              notes: e.target.value,
-            })
-          }
-        />
+        <textarea
+  placeholder="Observações"
+  value={editForm.notes}
+  onChange={(e) =>
+    setEditForm({
+      ...editForm,
+      notes: e.target.value,
+    })
+  }
+  className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white placeholder:text-neutral-500 focus:border-blue-500/50 focus:outline-none"
+/>
 
         <Button>
           Salvar Alterações
