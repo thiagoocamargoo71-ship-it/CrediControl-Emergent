@@ -850,65 +850,61 @@ const formatDate = (dateStr) => {
         <p className="mt-1 text-sm text-neutral-400">
           Adicione uma parcela manualmente ao empréstimo.
         </p>
-      </div>
-
-      <div className="space-y-4">
-
+      </div>      
         <div>
-          <label className="mb-2 block text-sm text-neutral-300">
-            Valor da parcela
-          </label>
 
-          <input
-            type="number"
-            value={newInstallment.amount}
-            onChange={(e) =>
-              setNewInstallment({
-                ...newInstallment,
-                amount: e.target.value,
-              })
-            }
-            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
-            placeholder="Ex: 350.00"
-          />
-        </div>
+      <div className="space-y-2">
+         <label className="text-sm font-medium text-neutral-300">
+           Valor da Parcela
+         </label>
 
-        <div>
-          <label className="mb-2 block text-sm text-neutral-300">
-            Vencimento
-          </label>
+  <Input
+    value={editForm.amount}
+    onChange={(e) =>
+      setEditForm({
+        ...editForm,
+        amount: e.target.value,
+      })
+    }
+    className="h-12 rounded-2xl border-white/10 bg-neutral-900"
+  />
+</div>       
 
-          <input
-            type="date"
-            value={newInstallment.due_date}
-            onChange={(e) =>
-              setNewInstallment({
-                ...newInstallment,
-                due_date: e.target.value,
-              })
-            }
-            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
-          />
-        </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-neutral-300">
+          Novo vencimento
+      </label>
 
-        <div>
-          <label className="mb-2 block text-sm text-neutral-300">
-            Observação
-          </label>
+  <Input
+    type="date"
+    value={editForm.due_date}
+    onChange={(e) =>
+      setEditForm({
+        ...editForm,
+        due_date: e.target.value,
+      })
+    }
+    className="h-12 rounded-2xl border-white/10 bg-neutral-900"
+  />
+</div>
 
-          <textarea
-            rows={3}
-            value={newInstallment.notes}
-            onChange={(e) =>
-              setNewInstallment({
-                ...newInstallment,
-                notes: e.target.value,
-              })
-            }
-            className="w-full rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-blue-500"
-            placeholder="Ex: Parcela extra negociada"
-          />
-        </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-neutral-300">
+          Observações
+      </label>
+
+      <textarea
+  placeholder="Observações"
+  value={editForm.notes}
+  onChange={(e) =>
+    setEditForm({
+      ...editForm,
+      notes: e.target.value,
+    })
+  }
+  className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white"
+/>
+    </div>
 
         <label className="flex items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
           <input
@@ -953,10 +949,24 @@ const formatDate = (dateStr) => {
 
 {showEditModal && (
   <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-    <DialogContent className="bg-neutral-950 border border-white/10">
-      <DialogHeader>
-        <DialogTitle>Editar Parcela</DialogTitle>
-      </DialogHeader>
+    <DialogContent className="max-w-xl border border-blue-500/20 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 shadow-[0_25px_80px_rgba(37,99,235,0.25)] backdrop-blur-xl">
+      <DialogHeader className="border-b border-white/10 pb-4">
+  <div className="flex items-center gap-3">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
+      ✏️
+    </div>
+
+    <div>
+      <DialogTitle className="text-xl font-semibold text-white">
+        Editar Parcela
+      </DialogTitle>
+
+      <p className="text-sm text-neutral-400">
+        Atualize os dados da parcela selecionada.
+      </p>
+    </div>
+  </div>
+</DialogHeader>
 
       <div className="space-y-4">
 
