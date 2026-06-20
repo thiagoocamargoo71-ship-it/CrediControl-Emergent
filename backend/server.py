@@ -906,6 +906,52 @@ async def create_manual_installment(
 
     return created
 
+    
+@loans_router.put("/installments/{installment_id}")
+async def update_installment(
+    installment_id: str,
+    payload: dict,
+    user: dict = Depends(require_user)
+):
+    installment = await sb_one(
+        "installments",
+        "*",
+        eq={"id": installment_id}
+    )
+
+    if not installment:
+        raise HTTPException(
+            status_code=404,
+            detail="Parcela não encontrada"
+        )
+
+    loan = await sb_one(
+        "loans",
+        "*",
+        eq={"id": installment["loan_id"]}
+    )
+
+    if loan["user_id"] != user["id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Sem permissão"
+        )
+
+    update_data = {
+        "amount": float(payload["amount"]),
+        "updated_amount": float(payload["amount"]),
+        "due_date": payload["due_date"],
+        "notes": payload.get("notes", "")
+    }
+
+    updated = await sb_update(
+        "installments",
+        update_data,
+        eq={"id": installment_id}
+    )
+
+    return updated
+
 
 # =========================
 # INSTALLMENTS ROUTES

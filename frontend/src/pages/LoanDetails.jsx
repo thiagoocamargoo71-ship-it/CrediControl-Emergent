@@ -106,29 +106,22 @@ const [newInstallment, setNewInstallment] = useState({
     }
   };
 
-  const handleCreateInstallment = async () => {
+    const handleUpdateInstallment = async () => {
   try {
-    await axios.post(
-      `${API}/loans/${id}/installments`,
-      newInstallment
+    await axios.put(
+      `${API}/loans/installments/${selectedInstallment.id}`,
+      editForm
     );
 
-    toast.success('Parcela criada com sucesso!');
+    toast.success("Parcela atualizada com sucesso!");
 
-    setShowInstallmentModal(false);
-
-    setNewInstallment({
-      amount: '',
-      due_date: '',
-      notes: '',
-      apply_interest: true,
-    });
+    setShowEditModal(false);
 
     await fetchData();
   } catch (error) {
     toast.error(
-      formatApiErrorDetail(error.response?.data?.detail) ||
-        'Erro ao criar parcela'
+      error?.response?.data?.detail ||
+      "Erro ao atualizar parcela"
     );
   }
 };
@@ -1005,9 +998,12 @@ const formatDate = (dateStr) => {
   className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white placeholder:text-neutral-500 focus:border-blue-500/50 focus:outline-none"
 />
 
-        <Button>
-          Salvar Alterações
-        </Button>
+        <Button
+  onClick={handleUpdateInstallment}
+  className="rounded-2xl bg-gradient-to-r from-blue-500 to-blue-700 text-white"
+>
+  Salvar Alterações
+</Button>
 
       </div>
     </DialogContent>
