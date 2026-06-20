@@ -126,6 +126,29 @@ const [newInstallment, setNewInstallment] = useState({
   }
 };
 
+const handleDeleteInstallment = async (installment) => {
+  const confirmed = window.confirm(
+    `Deseja realmente excluir a parcela #${installment.number}?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await axios.delete(
+      `${API}/loans/installments/${installment.id}`
+    );
+
+    toast.success('Parcela excluída com sucesso!');
+
+    await fetchData();
+  } catch (error) {
+    toast.error(
+      error?.response?.data?.detail ||
+      'Erro ao excluir parcela'
+    );
+  }
+};
+
   const formatCurrency = (value) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -717,6 +740,7 @@ const formatDate = (dateStr) => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
+  onClick={() => handleDeleteInstallment(installment)}
   className="
     cursor-pointer
     px-4
