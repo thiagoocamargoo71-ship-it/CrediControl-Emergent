@@ -106,6 +106,33 @@ const [newInstallment, setNewInstallment] = useState({
     }
   };
 
+  const handleCreateInstallment = async () => {
+  try {
+    await axios.post(
+      `${API}/loans/${id}/installments`,
+      newInstallment
+    );
+
+    toast.success('Parcela criada com sucesso!');
+
+    setShowInstallmentModal(false);
+
+    setNewInstallment({
+      amount: '',
+      due_date: '',
+      notes: '',
+      apply_interest: true,
+    });
+
+    await fetchData();
+  } catch (error) {
+    toast.error(
+      formatApiErrorDetail(error.response?.data?.detail) ||
+      'Erro ao criar parcela'
+    );
+  }
+};
+
     const handleUpdateInstallment = async () => {
   try {
     await axios.put(
@@ -877,11 +904,11 @@ const formatDate = (dateStr) => {
 
   <Input
     type="number"
-    value={editForm.amount}
+    value={newInstallment.amount}
     onChange={(e) =>
-      setEditForm({
-        ...editForm,
-        amount: e.target.value,
+      setNewInstallment({
+  ...newInstallment,
+  amount: e.target.value,
       })
     }
     className="h-12 rounded-2xl border-white/10 bg-neutral-900 text-white"
@@ -895,10 +922,10 @@ const formatDate = (dateStr) => {
 
   <Input
     type="date"
-    value={editForm.due_date}
+    value={newInstallment.due_date}
     onChange={(e) =>
-      setEditForm({
-        ...editForm,
+      setNewInstallment({
+        ...newInstallment,
         due_date: e.target.value,
       })
     }
@@ -913,10 +940,10 @@ const formatDate = (dateStr) => {
 
   <textarea
     placeholder="Descreva o motivo da alteração da parcela..."
-    value={editForm.notes}
+    value={newInstallment.notes}
     onChange={(e) =>
-      setEditForm({
-        ...editForm,
+      setNewInstallment({
+        ...newInstallment,
         notes: e.target.value,
       })
     }
@@ -971,7 +998,7 @@ const formatDate = (dateStr) => {
       <DialogHeader className="border-b border-white/10 pb-4">
   <div className="flex items-center gap-3">
     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
-      ✏️
+      
     </div>
 
     <div>
