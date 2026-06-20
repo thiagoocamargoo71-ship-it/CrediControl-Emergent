@@ -44,6 +44,13 @@ const LoanDetails = () => {
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
   const [showInstallmentModal, setShowInstallmentModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [editForm, setEditForm] = useState({
+  amount: '',
+  due_date: '',
+  notes: '',
+});
 
 const [newInstallment, setNewInstallment] = useState({
   amount: '',
@@ -369,7 +376,7 @@ const formatDate = (dateStr) => {
     .reduce((acc, i) => acc + i.updated_amount, 0);
   const totalPending = installments
     .filter((i) => i.status !== 'paid')
-    .reduce((acc, i) => acc + i.updated_amount, 0);
+    .reduce((acc, i) => acc + i.updated_amount, 0); 
 
   const rightAction = (
     <div className="hidden sm:flex items-center gap-2">
@@ -677,6 +684,17 @@ const formatDate = (dateStr) => {
     focus:bg-blue-500/10
     focus:text-blue-300
   "
+  onClick={() => {
+  setSelectedInstallment(installment);
+
+  setEditForm({
+    amount: installment.amount || '',
+    due_date: installment.due_date || '',
+    notes: installment.notes || '',
+  });
+
+  setShowEditModal(true);
+}}
 >
   <Pencil className="mr-3 h-4 w-4 text-blue-400" />
   Editar Parcela
@@ -926,6 +944,56 @@ const formatDate = (dateStr) => {
   </div>
 )}
 
+{showEditModal && (
+  <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+    <DialogContent className="bg-neutral-950 border border-white/10">
+      <DialogHeader>
+        <DialogTitle>Editar Parcela</DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4">
+
+        <Input
+          placeholder="Valor"
+          value={editForm.amount}
+          onChange={(e) =>
+            setEditForm({
+              ...editForm,
+              amount: e.target.value,
+            })
+          }
+        />
+
+        <Input
+          type="date"
+          value={editForm.due_date}
+          onChange={(e) =>
+            setEditForm({
+              ...editForm,
+              due_date: e.target.value,
+            })
+          }
+        />
+
+        <Textarea
+          placeholder="Observações"
+          value={editForm.notes}
+          onChange={(e) =>
+            setEditForm({
+              ...editForm,
+              notes: e.target.value,
+            })
+          }
+        />
+
+        <Button>
+          Salvar Alterações
+        </Button>
+
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
     </AppShell>
   );
 };
