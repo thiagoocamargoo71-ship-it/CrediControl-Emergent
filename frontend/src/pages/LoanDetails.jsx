@@ -705,6 +705,21 @@ const formatDate = (dateStr) => {
 >
   <Pencil className="mr-3 h-4 w-4 text-blue-400" />
   Editar Parcela
+  <div className="mt-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4">
+  <div className="text-sm text-neutral-400">
+    Parcela Selecionada
+  </div>
+
+  <div className="mt-2 flex items-center justify-between">
+    <span className="font-medium text-white">
+      Parcela #{selectedInstallment?.number}
+    </span>
+
+    <span className="text-blue-400">
+      {formatCurrency(selectedInstallment?.amount)}
+    </span>
+  </div>
+</div>
 </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -854,11 +869,12 @@ const formatDate = (dateStr) => {
         <div>
 
       <div className="space-y-2">
-         <label className="text-sm font-medium text-neutral-300">
-           Valor da Parcela
-         </label>
+  <label className="text-sm font-medium text-neutral-300">
+    Valor da Parcela
+  </label>
 
   <Input
+    type="number"
     value={editForm.amount}
     onChange={(e) =>
       setEditForm({
@@ -866,14 +882,14 @@ const formatDate = (dateStr) => {
         amount: e.target.value,
       })
     }
-    className="h-12 rounded-2xl border-white/10 bg-neutral-900"
+    className="h-12 rounded-2xl border-white/10 bg-neutral-900 text-white"
   />
 </div>       
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-neutral-300">
-          Novo vencimento
-      </label>
+  <label className="text-sm font-medium text-neutral-300">
+    Data de Vencimento
+  </label>
 
   <Input
     type="date"
@@ -884,27 +900,27 @@ const formatDate = (dateStr) => {
         due_date: e.target.value,
       })
     }
-    className="h-12 rounded-2xl border-white/10 bg-neutral-900"
+    className="h-12 rounded-2xl border-white/10 bg-neutral-900 text-white"
   />
 </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-neutral-300">
-          Observações
-      </label>
+  <label className="text-sm font-medium text-neutral-300">
+    Observações
+  </label>
 
-      <textarea
-  placeholder="Observações"
-  value={editForm.notes}
-  onChange={(e) =>
-    setEditForm({
-      ...editForm,
-      notes: e.target.value,
-    })
-  }
-  className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white"
-/>
-    </div>
+  <textarea
+    placeholder="Descreva o motivo da alteração da parcela..."
+    value={editForm.notes}
+    onChange={(e) =>
+      setEditForm({
+        ...editForm,
+        notes: e.target.value,
+      })
+    }
+    className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white placeholder:text-neutral-500"
+  />
+</div>
 
         <label className="flex items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
           <input
