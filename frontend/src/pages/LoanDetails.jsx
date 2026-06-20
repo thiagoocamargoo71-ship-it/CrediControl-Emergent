@@ -38,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
