@@ -704,22 +704,7 @@ const formatDate = (dateStr) => {
 }}
 >
   <Pencil className="mr-3 h-4 w-4 text-blue-400" />
-  Editar Parcela
-  <div className="mt-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4">
-  <div className="text-sm text-neutral-400">
-    Parcela Selecionada
-  </div>
-
-  <div className="mt-2 flex items-center justify-between">
-    <span className="font-medium text-white">
-      Parcela #{selectedInstallment?.number}
-    </span>
-
-    <span className="text-blue-400">
-      {formatCurrency(selectedInstallment?.amount)}
-    </span>
-  </div>
-</div>
+  Editar Parcela  
 </DropdownMenuItem>
 
         <DropdownMenuItem
