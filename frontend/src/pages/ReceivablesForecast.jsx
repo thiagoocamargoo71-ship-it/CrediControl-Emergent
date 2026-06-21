@@ -5,7 +5,7 @@ import {
   Wallet,
   Users,
   Receipt,
-  Copy
+  Copy,
 } from 'lucide-react';
 import axios from 'axios';
 import { API } from '../App';
@@ -26,7 +26,23 @@ useEffect(() => {
 
 const fetchForecast = async () => {
   try {
-    setLoading(true);
+    setLoading(true);    
+
+    const response = await axios.get(
+      `${API}/reports/receivables-forecast`
+    );
+
+    setForecast(response.data);
+  } catch (error) {
+    console.error(
+      'Erro ao carregar previsão:',
+      error
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 const handleCopyWhatsApp = async () => {
   let message = `📊 *PREVISÃO DE RECEBIMENTOS*\n\n`;
 
@@ -85,20 +101,7 @@ const handleCopyWhatsApp = async () => {
   alert('Mensagem copiada com sucesso!');
 };
 
-    const response = await axios.get(
-      `${API}/reports/receivables-forecast`
-    );
 
-    setForecast(response.data);
-  } catch (error) {
-    console.error(
-      'Erro ao carregar previsão:',
-      error
-    );
-  } finally {
-    setLoading(false);
-  }
-};
   return (
     <div className="min-h-screen bg-neutral-950">
       <Sidebar />
@@ -115,33 +118,7 @@ const handleCopyWhatsApp = async () => {
 
               <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-sky-500 to-blue-700 shadow-[0_10px_40px_rgba(59,130,246,0.35)]">
                 <CalendarClock className="h-8 w-8 text-white" />
-              </div>
-
-              <div className="mb-8 flex justify-end">
-                <button
-                  onClick={handleCopyWhatsApp}
-                  className="
-                    inline-flex
-                    items-center
-                    gap-2
-                    rounded-2xl
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-emerald-700
-                    px-5
-                    py-3
-                    font-medium
-                    text-white
-                    shadow-lg
-                    transition-all
-                    hover:scale-[1.02]
-                    hover:shadow-emerald-500/20
-                  "
-                >      
-                  <Copy className="h-5 w-5" />
-                  Copiar para WhatsApp
-                </button>
-              </div>
+              </div>              
 
               <div>
                 <h1 className="text-3xl font-bold text-white">
@@ -155,6 +132,32 @@ const handleCopyWhatsApp = async () => {
 
             </div>
 
+          </div>
+
+          <div className="mb-8 flex justify-end">
+            <button
+              onClick={handleCopyWhatsApp}
+              className="
+                inline-flex
+                items-center
+                gap-2
+                rounded-2xl
+                bg-gradient-to-r
+                from-emerald-600
+                to-emerald-700
+                px-5
+                py-3
+                font-medium
+                text-white
+                shadow-lg
+                transition-all
+                hover:scale-[1.02]
+                hover:shadow-emerald-500/20
+              "
+            >
+              <Copy className="h-5 w-5" />
+              Copiar para WhatsApp
+            </button>
           </div>
 
           {/* Cards */}
