@@ -1042,17 +1042,26 @@ const formatDate = (dateStr) => {
       focus:border-blue-500/50
     "
   />
-</div>
+</div>        
 
-        <div className="space-y-2">
-  <label className="flex items-center gap-2 text-sm font-medium text-neutral-300">
-    <CalendarDays className="h-4 w-4 text-blue-400" />
-    Data
-  </label>
+    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+    <div className="
+    relative
+    flex
+    h-10
+    w-10
+    items-center
+    justify-center
+    rounded-xl
+    bg-gradient-to-br
+    from-blue-500
+    to-blue-700
+    shadow-lg
+  ">
+    <CalendarDays className="h-5 w-5 text-white" />
 
-  <div className="relative">
-    <Input
-      type="date"
+    <input
+      type="text"
       value={editForm.due_date}
       onChange={(e) =>
         setEditForm({
@@ -1061,30 +1070,14 @@ const formatDate = (dateStr) => {
         })
       }
       className="
-        h-14
-        rounded-2xl
-        border-white/10
-        bg-neutral-900
-        text-white
-        pr-14
-        focus:border-blue-500/50
-      "
-    />
-
-    <CalendarDays
-      className="
-        pointer-events-none
         absolute
-        right-4
-        top-1/2
-        h-5
-        w-5
-        -translate-y-1/2
-        text-blue-400
+        inset-0
+        cursor-pointer
+        opacity-0
       "
     />
   </div>
-</div>
+  </div>
 
         <textarea
   placeholder="Observações"
