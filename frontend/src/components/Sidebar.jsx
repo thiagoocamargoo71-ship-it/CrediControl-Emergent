@@ -246,7 +246,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
       { path: '/loans', label: 'Empréstimos', icon: Wallet },
       { path: '/installments', label: 'Parcelas', icon: Receipt },
       { path: '/reports', label: 'Relatórios', icon: BarChart3 },
-      {  path: '/receivables-forecast',  label: 'Previsão',  icon: CalendarClock,},
+      { path: '/receivables-forecast',  label: 'Previsão',  icon: CalendarClock,},
       { path: '/simulator', label: 'Simulador', icon: Calculator },
       { path: '/notifications', label: 'Notificações', icon: BellRing },
       { path: '/settings', label: 'Configurações', icon: Settings },
