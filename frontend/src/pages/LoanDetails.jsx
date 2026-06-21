@@ -1044,24 +1044,16 @@ const formatDate = (dateStr) => {
   />
 </div>        
 
-    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-    <div className="
-    relative
-    flex
-    h-10
-    w-10
-    items-center
-    justify-center
-    rounded-xl
-    bg-gradient-to-br
-    from-blue-500
-    to-blue-700
-    shadow-lg
-  ">
-    <CalendarDays className="h-5 w-5 text-white" />
+    <div className="space-y-2">
+  <label className="flex items-center gap-2 text-sm font-medium text-neutral-300">
+    <CalendarDays className="h-4 w-4 text-blue-400" />
+    Data
+  </label>
 
-    <input
-      type="text"
+  <div className="relative">
+
+    <Input
+      type="date"
       value={editForm.due_date}
       onChange={(e) =>
         setEditForm({
@@ -1070,14 +1062,46 @@ const formatDate = (dateStr) => {
         })
       }
       className="
-        absolute
-        inset-0
-        cursor-pointer
-        opacity-0
+        h-14
+        rounded-2xl
+        border-white/10
+        bg-neutral-900
+        text-white
+        pr-16
+        focus:border-blue-500/50
+        [&::-webkit-calendar-picker-indicator]:opacity-0
+        [&::-webkit-calendar-picker-indicator]:absolute
+        [&::-webkit-calendar-picker-indicator]:right-0
+        [&::-webkit-calendar-picker-indicator]:w-full
+        [&::-webkit-calendar-picker-indicator]:h-full
+        [&::-webkit-calendar-picker-indicator]:cursor-pointer
       "
     />
+
+    <div
+      className="
+        pointer-events-none
+        absolute
+        right-3
+        top-1/2
+        -translate-y-1/2
+        flex
+        h-10
+        w-10
+        items-center
+        justify-center
+        rounded-xl
+        bg-gradient-to-br
+        from-blue-500
+        to-blue-700
+        shadow-lg
+      "
+    >
+      <CalendarDays className="h-5 w-5 text-white" />
+    </div>
+
   </div>
-  </div>
+</div>
 
         <textarea
   placeholder="Observações"
