@@ -5,6 +5,7 @@ import { Toaster } from './components/ui/sonner';
 import './App.css';
 import Simulator from './pages/Simulator';
 import Reports from './pages/Reports';
+import ReceivablesForecast from './pages/ReceivablesForecast';
 import AdminCollections from './pages/AdminCollections';
 import { NotificationProvider } from './context/NotificationContext';
 
@@ -255,6 +256,14 @@ function App() {
                 element={
                   <ProtectedUserRoute>
                     <Reports />
+                  </ProtectedUserRoute>
+                }
+              />
+              <Route
+                path="/receivables-forecast"
+                element={
+                  <ProtectedUserRoute>
+                    <ReceivablesForecast />
                   </ProtectedUserRoute>
                 }
               />

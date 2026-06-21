@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Users,
   Calculator,
+  CalendarClock,
   Wallet,
   LogOut,
   ChevronRight,
@@ -135,6 +136,8 @@ const SidebarContent = ({
                                 ? 'Controle'
                                 : link.path === '/reports'
                                   ? 'Análises'
+                                  : link.path === '/receivables-forecast'
+                                    ? 'Recebimentos'
                                   : link.path === '/simulator'
                                     ? 'Cálculos'
                                     : link.path === '/notifications'
@@ -243,6 +246,7 @@ const Sidebar = ({ mobileOpen: controlledMobileOpen, setMobileOpen: controlledSe
       { path: '/loans', label: 'Empréstimos', icon: Wallet },
       { path: '/installments', label: 'Parcelas', icon: Receipt },
       { path: '/reports', label: 'Relatórios', icon: BarChart3 },
+      {  path: '/receivables-forecast',  label: 'Previsão',  icon: CalendarClock,},
       { path: '/simulator', label: 'Simulador', icon: Calculator },
       { path: '/notifications', label: 'Notificações', icon: BellRing },
       { path: '/settings', label: 'Configurações', icon: Settings },
