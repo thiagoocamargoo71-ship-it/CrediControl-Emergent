@@ -5,6 +5,7 @@ import {
   Wallet,
   Users,
   Receipt,
+  Copy
 } from 'lucide-react';
 import axios from 'axios';
 import { API } from '../App';
@@ -26,6 +27,63 @@ useEffect(() => {
 const fetchForecast = async () => {
   try {
     setLoading(true);
+const handleCopyWhatsApp = async () => {
+  let message = `📊 *PREVISÃO DE RECEBIMENTOS*\n\n`;
+
+  const today = new Date();
+
+  const limitDate = new Date();
+  limitDate.setDate(today.getDate() + 7);
+
+  message += `📅 *Período:* ${today.toLocaleDateString(
+    'pt-BR'
+  )} até ${limitDate.toLocaleDateString('pt-BR')}\n\n`;
+
+  message += `💰 *Valor Previsto:* ${forecast.total_amount.toLocaleString(
+    'pt-BR',
+    {
+      style: 'currency',
+      currency: 'BRL',
+    }
+  )}\n`;
+
+  message += `📄 *Parcelas Previstas:* ${forecast.total_installments}\n`;
+
+  message += `👥 *Clientes Previstos:* ${forecast.total_customers}\n\n`;
+
+  message += `━━━━━━━━━━━━━━\n\n`;
+
+  Object.entries(forecast.grouped_installments).forEach(
+    ([date, installments]) => {
+      message += `📅 *${new Date(date).toLocaleDateString(
+        'pt-BR',
+        {
+          timeZone: 'UTC',
+        }
+      )}*\n\n`;
+
+      installments.forEach((item) => {
+        message += `• ${item.customer_name}\n`;
+        message += `Parcela ${item.installment_number} - ${item.amount.toLocaleString(
+          'pt-BR',
+          {
+            style: 'currency',
+            currency: 'BRL',
+          }
+        )}\n\n`;
+      });
+
+      message += `━━━━━━━━━━━━━━\n\n`;
+    }
+  );
+
+  message += `Atenciosamente,\n\n`;
+  message += `*CrediControl Assessoria Financeira*`;
+
+  await navigator.clipboard.writeText(message);
+
+  alert('Mensagem copiada com sucesso!');
+};
 
     const response = await axios.get(
       `${API}/reports/receivables-forecast`
@@ -57,6 +115,32 @@ const fetchForecast = async () => {
 
               <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-sky-500 to-blue-700 shadow-[0_10px_40px_rgba(59,130,246,0.35)]">
                 <CalendarClock className="h-8 w-8 text-white" />
+              </div>
+
+              <div className="mb-8 flex justify-end">
+                <button
+                  onClick={handleCopyWhatsApp}
+                  className="
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-2xl
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-emerald-700
+                    px-5
+                    py-3
+                    font-medium
+                    text-white
+                    shadow-lg
+                    transition-all
+                    hover:scale-[1.02]
+                    hover:shadow-emerald-500/20
+                  "
+                >      
+                  <Copy className="h-5 w-5" />
+                  Copiar para WhatsApp
+                </button>
               </div>
 
               <div>
