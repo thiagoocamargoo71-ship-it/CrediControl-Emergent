@@ -31,6 +31,8 @@ import {
   Pencil,
   HandCoins,
   Trash2,
+  CalendarDays,
+  BadgeDollarSign,
 } from 'lucide-react';
 import {
   Dialog,
@@ -997,9 +999,9 @@ const formatDate = (dateStr) => {
     <DialogContent className="max-w-xl border border-blue-500/20 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900 shadow-[0_25px_80px_rgba(37,99,235,0.25)] backdrop-blur-xl">
       <DialogHeader className="border-b border-white/10 pb-4">
   <div className="flex items-center gap-3">
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
-      
-    </div>
+    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 shadow-[0_10px_35px_rgba(59,130,246,0.45)]">
+  <Pencil className="h-7 w-7 text-white" />
+</div>
 
     <div>
       <DialogTitle className="text-xl font-semibold text-white">
@@ -1015,27 +1017,74 @@ const formatDate = (dateStr) => {
 
       <div className="space-y-4">
 
-        <Input
-          placeholder="Valor"
-          value={editForm.amount}
-          onChange={(e) =>
-            setEditForm({
-              ...editForm,
-              amount: e.target.value,
-            })
-          }
-        />
+        <div className="space-y-2">
+  <label className="flex items-center gap-2 text-sm font-medium text-neutral-300">
+    <BadgeDollarSign className="h-4 w-4 text-blue-400" />
+    Valor
+  </label>
 
-        <Input
-          type="date"
-          value={editForm.due_date}
-          onChange={(e) =>
-            setEditForm({
-              ...editForm,
-              due_date: e.target.value,
-            })
-          }
-        />
+  <Input
+    value={editForm.amount}
+    onChange={(e) =>
+      setEditForm({
+        ...editForm,
+        amount: e.target.value,
+      })
+    }
+    placeholder="R$ 0,00"
+    className="
+      h-14
+      rounded-2xl
+      border-white/10
+      bg-neutral-900
+      text-lg
+      text-white
+      focus:border-blue-500/50
+    "
+  />
+</div>
+
+        <div className="space-y-2">
+  <label className="flex items-center gap-2 text-sm font-medium text-neutral-300">
+    <CalendarDays className="h-4 w-4 text-blue-400" />
+    Data
+  </label>
+
+  <div className="relative">
+    <Input
+      type="date"
+      value={editForm.due_date}
+      onChange={(e) =>
+        setEditForm({
+          ...editForm,
+          due_date: e.target.value,
+        })
+      }
+      className="
+        h-14
+        rounded-2xl
+        border-white/10
+        bg-neutral-900
+        text-white
+        pr-14
+        focus:border-blue-500/50
+      "
+    />
+
+    <CalendarDays
+      className="
+        pointer-events-none
+        absolute
+        right-4
+        top-1/2
+        h-5
+        w-5
+        -translate-y-1/2
+        text-blue-400
+      "
+    />
+  </div>
+</div>
 
         <textarea
   placeholder="Observações"
