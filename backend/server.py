@@ -1383,6 +1383,113 @@ async def list_payments(installment_id: str, user: dict = Depends(require_user))
 
 
 # =========================
+# RECEIVABLES FORECAST ROUTES
+# =========================
+
+@api_router.get("/reports/receivables-forecast")
+async def get_receivables_forecast(
+    days: int = 7,
+    user: dict = Depends(require_user)
+):
+    loans = await sb_many(
+        "loans",
+        "id, customer_id",
+        eq={"user_id": user["id"]}
+    )
+
+    if not loans:
+        return {
+            "total_amount": 0,
+            "total_installments": 0,
+            "total_customers": 0,
+            "grouped_installments": {}
+        }
+
+    loan_ids = [loan["id"] for loan in loans]
+    loan_map = {
+        loan["id"]: loan for loan in loans
+    }
+
+    customer_ids = list(
+        set(loan["customer_id"] for loan in loans)
+    )
+
+    customers = await sb_many(
+        "customers",
+        "id, name",
+        in_={"id": customer_ids}
+    )
+
+    customer_map = {
+        customer["id"]: customer["name"]
+        for customer in customers
+    }
+
+    installments = await sb_many(
+        "installments",
+        "id, loan_id, number, amount, updated_amount, due_date, status",
+        in_={"loan_id": loan_ids},
+        eq={"status": "pending"},
+        order="due_date"
+    )
+
+    today = datetime.now(timezone.utc).date()
+    limit_date = today + timedelta(days=days)
+
+    grouped = {}
+    total_amount = 0
+    customers_set = set()
+
+    for inst in installments:
+        due_date = parse_due_date(inst["due_date"])
+
+        if due_date < today or due_date > limit_date:
+            continue
+
+        loan = loan_map.get(inst["loan_id"])
+
+        if not loan:
+            continue
+
+        customer_name = customer_map.get(
+            loan["customer_id"],
+            "Cliente"
+        )
+
+        customers_set.add(customer_name)
+
+        amount = (
+            inst.get("updated_amount")
+            or inst.get("amount")
+            or 0
+        )
+
+        total_amount += amount
+
+        date_key = due_date.strftime("%Y-%m-%d")
+
+        if date_key not in grouped:
+            grouped[date_key] = []
+
+        grouped[date_key].append({
+            "id": inst["id"],
+            "customer_name": customer_name,
+            "installment_number": inst["number"],
+            "amount": round(amount, 2)
+        })
+
+    return {
+        "total_amount": round(total_amount, 2),
+        "total_installments": sum(
+            len(items)
+            for items in grouped.values()
+        ),
+        "total_customers": len(customers_set),
+        "grouped_installments": grouped
+    }
+
+
+# =========================
 # DASHBOARD ROUTES
 # =========================
 
